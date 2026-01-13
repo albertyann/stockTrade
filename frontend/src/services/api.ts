@@ -15,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -182,8 +182,7 @@ export const analysisResultAPI = {
     api.delete(`/analysis-results/${id}`),
 };
 
-// 导出所有API
-export default {
+const apiServices = {
   user: userAPI,
   stock: stockAPI,
   userStock: userStockAPI,
@@ -194,3 +193,5 @@ export default {
   ruleEngine: ruleEngineAPI,
   analysisResult: analysisResultAPI,
 };
+
+export default apiServices;

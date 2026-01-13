@@ -13,7 +13,6 @@ interface RuleCardProps {
 }
 
 const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) => {
-  // 格式化规则条件显示
   const formatConditions = (conditions: any): string => {
     if (!conditions || !conditions.conditions) return '无条件';
     
@@ -51,15 +50,31 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) =
   return (
     <Card
       hoverable
-      style={{ marginBottom: 16, borderRadius: 8 }}
-      bodyStyle={{ padding: 16 }}
+      style={{ 
+        marginBottom: 16, 
+        borderRadius: 8,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+        transition: 'all 0.3s ease',
+        border: '1px solid #f0f0f0',
+      }}
+      bodyStyle={{ padding: 20 }}
     >
       <Space direction="vertical" style={{ width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <Title level={4} style={{ margin: 0 }}>{rule.name}</Title>
-            {rule.enabled ? <Tag color="green">启用</Tag> : <Tag color="red">禁用</Tag>}
-            <Tag color="orange">优先级: {rule.priority}</Tag>
+            <Title level={4} style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{rule.name}</Title>
+            <div style={{ marginTop: 8 }}>
+              {rule.enabled 
+                ? <Tag color="success" style={{ fontSize: 12, padding: '4px 10px', borderRadius: 4, fontWeight: 500 }}>启用</Tag> 
+                : <Tag color="error" style={{ fontSize: 12, padding: '4px 10px', borderRadius: 4, fontWeight: 500 }}>禁用</Tag>
+              }
+              <Tag 
+                color="orange" 
+                style={{ fontSize: 12, padding: '4px 10px', borderRadius: 4, fontWeight: 500 }}
+              >
+                优先级: {rule.priority}
+              </Tag>
+            </div>
           </div>
           <div>
             <Space>
@@ -68,6 +83,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) =
                 icon={<EyeOutlined />}
                 onClick={onView}
                 size="small"
+                style={{ color: '#1890ff', fontWeight: 500 }}
               >
                 查看
               </Button>
@@ -76,6 +92,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) =
                 icon={<EditOutlined />}
                 onClick={onEdit}
                 size="small"
+                style={{ color: '#52c41a', fontWeight: 500 }}
               >
                 编辑
               </Button>
@@ -85,6 +102,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) =
                 onClick={onDelete}
                 size="small"
                 danger
+                style={{ fontWeight: 500 }}
               >
                 删除
               </Button>
@@ -93,23 +111,30 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule, onEdit, onDelete, onView }) =
         </div>
         
         {rule.description && (
-          <Text type="secondary" style={{ fontSize: '14px', lineHeight: 1.6 }}>
+          <Text type="secondary" style={{ fontSize: 14, lineHeight: 1.6 }}>
             {rule.description}
           </Text>
         )}
         
-        <div style={{ marginTop: 8 }}>
-          <Text strong>条件:</Text>
+        <div style={{ 
+          marginTop: 12, 
+          paddingTop: 12, 
+          borderTop: '1px solid #f0f0f0',
+          background: '#fafafa',
+          padding: 12,
+          borderRadius: 4
+        }}>
+          <Text strong style={{ fontSize: 14, color: '#262626' }}>条件:</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: '13px' }}>
+          <Text type="secondary" style={{ fontSize: 13, lineHeight: 1.8, marginTop: 8, display: 'block' }}>
             {formatConditions(rule.conditions)}
           </Text>
         </div>
         
-        <div style={{ marginTop: 8, fontSize: '12px', color: '#8c8c8c' }}>
-          创建时间: {new Date(rule.created_at).toLocaleString()}
+        <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(0, 0, 0, 0.45)' }}>
+          创建时间: {new Date(rule.created_at).toLocaleString('zh-CN')}
           <br />
-          更新时间: {new Date(rule.updated_at).toLocaleString()}
+          更新时间: {new Date(rule.updated_at).toLocaleString('zh-CN')}
         </div>
       </Space>
     </Card>

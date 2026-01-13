@@ -30,6 +30,31 @@ app.add_middleware(
 os.makedirs(settings.UPLOAD_FOLDER, exist_ok=True)
 
 
+def init_default_user():
+    db = next(get_db())
+    try:
+        existing_user = crud.get_user_by_username(db, username="admin")
+        if not existing_user:
+            default_user = schemas.UserCreate(
+                username="admin",
+                email="admin@example.com",
+                password="123456"
+            )
+            admin_user = crud.create_user(db=db, user=default_user)
+            print(f"默认管理员用户已创建: {admin_user.username} / 123456")
+        else:
+            print(f"默认管理员用户已存在: {existing_user.username}")
+    except Exception as e:
+        print(f"创建默认用户时出错: {str(e)}")
+    finally:
+        db.close()
+
+
+@app.on_event("startup")
+async def startup_event():
+    init_default_user()
+
+
 # 认证路由
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(

@@ -1,4 +1,4 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 
@@ -29,9 +29,19 @@ class Settings(BaseSettings):
     HOST: str = "localhost"
     PORT: int = 8000
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # 定时任务配置
+    SYNC_INTERVAL: int = 60
+    
+    # 对象存储配置
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "YOUR_ACCESS_KEY"
+    MINIO_SECRET_KEY: str = "YOUR_SECRET_KEY"
+    MINIO_BUCKET: str = "YOUR_BUCKET"
+    
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8"
+    }
 
 
 settings = Settings()

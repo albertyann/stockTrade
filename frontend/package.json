@@ -3,18 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^4.21.0",
+    "axios": "^0.27.2",
+    "dayjs": "^1.11.4",
+    "echarts": "^5.3.3",
+    "echarts-for-react": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
-    "axios": "^0.27.2",
-    "antd": "^4.21.0",
-    "echarts": "^5.3.3",
-    "echarts-for-react": "^3.0.2",
-    "dayjs": "^1.11.4",
     "styled-components": "^5.3.5"
   },
   "scripts": {
@@ -41,5 +42,12 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8000"
+  "proxy": "http://localhost:8000",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.7",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
 }

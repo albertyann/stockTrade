@@ -19,6 +19,8 @@ export interface Stock {
   description: string;
   created_at: string;
   updated_at: string;
+  price?: number;
+  change?: number;
 }
 
 // 用户自选股类型

@@ -188,7 +188,7 @@ class LoginRequest(BaseModel):
 # 数据同步相关schemas
 class SyncRequest(BaseModel):
     stock_codes: Optional[List[str]] = None
-    sync_type: str = Field(..., regex="^(stock|financial|all)$")
+    sync_type: str = Field(..., pattern="^(stock|financial|all)$")
 
 
 class SyncResult(BaseModel):
