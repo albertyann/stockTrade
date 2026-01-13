@@ -81,7 +81,7 @@ const Files: React.FC = () => {
       title: '文件类型',
       dataIndex: 'file_type',
       key: 'file_type',
-      render: (type: string) => <Tag color="blue">{type}</Tag>,
+      render: (type: string) => <Tag className="tag-modern blue">{type}</Tag>,
     },
     {
       title: '文件大小',
@@ -99,7 +99,7 @@ const Files: React.FC = () => {
       render: (stockId?: number) => {
         if (!stockId) return '-';
         const stock = stocks.find(s => s.id === stockId);
-        return stock ? <Tag color="cyan">{stock.code}</Tag> : '-';
+        return stock ? <Tag className="tag-modern cyan">{stock.code}</Tag> : '-';
       },
     },
     {
@@ -108,7 +108,7 @@ const Files: React.FC = () => {
       key: 'tags',
       render: (tags: string[]) => (
         <Space size={4}>
-          {tags.map(tag => <Tag key={tag} color="green">{tag}</Tag>)}
+          {tags.map(tag => <Tag key={tag} className="tag-modern green">{tag}</Tag>)}
         </Space>
       ),
     },
@@ -141,11 +141,11 @@ const Files: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2}>文件管理</Title>
-        <Text type="secondary">管理和上传股票相关文件</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>文件管理</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>管理和上传股票相关文件</Text>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setUploadModalVisible(true)}>
             上传文件
@@ -182,7 +182,15 @@ const Files: React.FC = () => {
         <Form layout="vertical">
           <Form.Item label="关联股票">
             <select
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d9d9d9' }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px solid #E2E8F0',
+                fontSize: 14,
+                background: 'white',
+                transition: 'all 0.2s ease'
+              }}
               value={selectedStockId}
               onChange={(e) => setSelectedStockId(Number(e.target.value))}
             >

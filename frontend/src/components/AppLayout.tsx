@@ -89,11 +89,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        width={200}
-        collapsedWidth={64}
+        width={220}
+        collapsedWidth={70}
         trigger={null}
         style={{
-          background: '#001529',
+          background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
           overflow: 'auto',
           height: '100vh',
           position: 'fixed',
@@ -105,17 +105,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       >
         <div style={{
           height: 64,
-          margin: 16,
-          background: 'linear-gradient(135deg, rgba(24, 144, 255, 0.3), rgba(24, 144, 255, 0.1))',
+          margin: '16px 12px',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.15))',
           borderRadius: 12,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
           fontWeight: 700,
-          fontSize: collapsed ? 14 : 18,
-          letterSpacing: collapsed ? 0 : 1,
+          fontSize: collapsed ? 20 : 16,
+          letterSpacing: collapsed ? 0 : 0.5,
           transition: 'all 0.3s ease',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
         }}>
           {collapsed ? '📊' : '股票分析系统'}
         </div>
@@ -130,26 +132,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           }}
         />
       </Sider>
-      <Layout style={{ marginLeft: collapsed ? 64 : 200, transition: 'margin-left 0.2s ease' }}>
+      <Layout style={{ marginLeft: collapsed ? 70 : 220, transition: 'margin-left 0.2s ease' }}>
         <Header style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(12px)',
           padding: '0 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
           position: 'sticky',
           top: 0,
           zIndex: 99,
+          borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
         }}>
           <Space size="large">
-            <Text strong style={{ fontSize: 18, color: '#262626' }}>
+            <Text strong style={{ fontSize: 18, color: '#0F172A', fontWeight: 700 }}>
               {menuItems.find(item => item.key === location.pathname)?.label || '仪表盘'}
             </Text>
           </Space>
           <Space size="middle">
-            <Text type="secondary" style={{ fontSize: 14 }}>
+            <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
               {new Date().toLocaleDateString('zh-CN', { 
                 year: 'numeric', 
                 month: 'long', 
@@ -162,8 +165,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 icon={<UserOutlined />} 
                 style={{ 
                   cursor: 'pointer', 
-                  background: 'linear-gradient(135deg, #1890ff, #096dd9)',
-                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.4)',
+                  background: 'linear-gradient(135deg, #3B82F6, #6366F1)',
+                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
                 }} 
               />
             </Dropdown>
@@ -172,9 +175,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <Content style={{
           margin: '24px',
           padding: '24px',
-          background: '#f0f2f5',
+          background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
           minHeight: 'calc(100vh - 88px)',
-          borderRadius: 8,
+          borderRadius: 12,
         }}>
           {children}
         </Content>

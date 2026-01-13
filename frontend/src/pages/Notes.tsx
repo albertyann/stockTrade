@@ -102,7 +102,7 @@ const Notes: React.FC = () => {
       key: 'stock_id',
       render: (stockId: number) => {
         const stock = stocks.find(s => s.id === stockId);
-        return stock ? <Tag color="blue">{stock.code} - {stock.name}</Tag> : '-';
+        return stock ? <Tag className="tag-modern blue">{stock.code} - {stock.name}</Tag> : '-';
       },
     },
     {
@@ -111,7 +111,7 @@ const Notes: React.FC = () => {
       key: 'tags',
       render: (tags: string[]) => (
         <Space size={4}>
-          {tags.map(tag => <Tag key={tag} color="cyan">{tag}</Tag>)}
+          {tags.map(tag => <Tag key={tag} className="tag-modern cyan">{tag}</Tag>)}
         </Space>
       ),
     },
@@ -160,11 +160,11 @@ const Notes: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700 }}>投资笔记</Title>
-        <Text type="secondary" style={{ fontSize: 15 }}>记录您的投资思考和策略</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>投资笔记</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>记录您的投资思考和策略</Text>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <Space style={{ marginBottom: 20, width: '100%', justifyContent: 'space-between' }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
             新建笔记
@@ -203,11 +203,12 @@ const Notes: React.FC = () => {
             <select
               style={{ 
                 width: '100%', 
-                padding: '10px', 
-                borderRadius: '6px', 
-                border: '1px solid #d9d9d9',
+                padding: '10px 12px', 
+                borderRadius: '8px', 
+                border: '1px solid #E2E8F0',
                 fontSize: 14,
-                background: 'white'
+                background: 'white',
+                transition: 'all 0.2s ease'
               }}
             >
               {stocks.map(stock => (

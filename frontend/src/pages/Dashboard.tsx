@@ -155,10 +155,10 @@ const Dashboard: React.FC = () => {
         lineStyle: { 
           width: 3,
           shadowBlur: 10,
-          shadowColor: 'rgba(24, 144, 255, 0.5)'
+          shadowColor: 'rgba(59, 130, 246, 0.5)'
         },
         itemStyle: {
-          color: '#1890ff',
+          color: '#3B82F6',
           borderWidth: 2,
           borderColor: '#fff'
         },
@@ -170,9 +170,9 @@ const Dashboard: React.FC = () => {
             x2: 0,
             y2: 1,
             colorStops: [{
-              offset: 0, color: 'rgba(24, 144, 255, 0.3)'
+              offset: 0, color: 'rgba(59, 130, 246, 0.3)'
             }, {
-              offset: 1, color: 'rgba(24, 144, 255, 0.05)'
+              offset: 1, color: 'rgba(59, 130, 246, 0.05)'
             }]
           }
         },
@@ -192,10 +192,10 @@ const Dashboard: React.FC = () => {
         lineStyle: { 
           width: 3,
           shadowBlur: 10,
-          shadowColor: 'rgba(250, 173, 20, 0.5)'
+          shadowColor: 'rgba(249, 115, 22, 0.5)'
         },
         itemStyle: {
-          color: '#faad14',
+          color: '#F97316',
           borderWidth: 2,
           borderColor: '#fff'
         },
@@ -207,9 +207,9 @@ const Dashboard: React.FC = () => {
             x2: 0,
             y2: 1,
             colorStops: [{
-              offset: 0, color: 'rgba(250, 173, 20, 0.3)'
+              offset: 0, color: 'rgba(249, 115, 22, 0.3)'
             }, {
-              offset: 1, color: 'rgba(250, 173, 20, 0.05)'
+              offset: 1, color: 'rgba(249, 115, 22, 0.05)'
             }]
           }
         },
@@ -229,10 +229,10 @@ const Dashboard: React.FC = () => {
         lineStyle: { 
           width: 3,
           shadowBlur: 10,
-          shadowColor: 'rgba(82, 196, 26, 0.5)'
+          shadowColor: 'rgba(99, 102, 241, 0.5)'
         },
         itemStyle: {
-          color: '#52c41a',
+          color: '#6366F1',
           borderWidth: 2,
           borderColor: '#fff'
         },
@@ -244,9 +244,9 @@ const Dashboard: React.FC = () => {
             x2: 0,
             y2: 1,
             colorStops: [{
-              offset: 0, color: 'rgba(82, 196, 26, 0.3)'
+              offset: 0, color: 'rgba(99, 102, 241, 0.3)'
             }, {
-              offset: 1, color: 'rgba(82, 196, 26, 0.05)'
+              offset: 1, color: 'rgba(99, 102, 241, 0.05)'
             }]
           }
         },
@@ -266,10 +266,10 @@ const Dashboard: React.FC = () => {
         lineStyle: { 
           width: 3,
           shadowBlur: 10,
-          shadowColor: 'rgba(19, 194, 194, 0.5)'
+          shadowColor: 'rgba(16, 185, 129, 0.5)'
         },
         itemStyle: {
-          color: '#13c2c2',
+          color: '#10B981',
           borderWidth: 2,
           borderColor: '#fff'
         },
@@ -281,9 +281,9 @@ const Dashboard: React.FC = () => {
             x2: 0,
             y2: 1,
             colorStops: [{
-              offset: 0, color: 'rgba(19, 194, 194, 0.3)'
+              offset: 0, color: 'rgba(16, 185, 129, 0.3)'
             }, {
-              offset: 1, color: 'rgba(19, 194, 194, 0.05)'
+              offset: 1, color: 'rgba(16, 185, 129, 0.05)'
             }]
           }
         },
@@ -314,13 +314,13 @@ const Dashboard: React.FC = () => {
                 value={parseFloat(item.value)}
                 precision={2}
                 valueStyle={{ 
-                  color: item.positive ? '#52c41a' : '#ff4d4f',
+                  color: item.positive ? '#10B981' : '#EF4444',
                   fontWeight: 700,
                   fontSize: 32,
                 }}
                 prefix={item.positive 
-                  ? <ArrowUpOutlined style={{ color: '#52c41a' }} /> 
-                  : <ArrowDownOutlined style={{ color: '#ff4d4f' }} />
+                  ? <ArrowUpOutlined style={{ color: '#10B981' }} /> 
+                  : <ArrowDownOutlined style={{ color: '#EF4444' }} />
                 }
                 suffix={
                   <Tag 

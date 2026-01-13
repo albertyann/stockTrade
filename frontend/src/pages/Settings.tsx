@@ -54,18 +54,18 @@ const Settings: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700 }}>设置</Title>
-        <Text type="secondary" style={{ fontSize: 15 }}>管理您的账户设置</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>设置</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>管理您的账户设置</Text>
       </div>
 
-      <Card style={{ marginBottom: 24 }}>
-        <Title level={4} style={{ fontSize: 18, fontWeight: 600 }}>个人信息</Title>
+      <Card className="glass-card" style={{ marginBottom: 24 }}>
+        <Title level={4} style={{ fontSize: 18, fontWeight: 600, color: '#0F172A' }}>个人信息</Title>
         {user && (
-          <div style={{ marginBottom: 24, padding: '16px', background: '#fafafa', borderRadius: 8 }}>
+          <div style={{ marginBottom: 24, padding: '16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
             <Space direction="vertical" size={12}>
-              <Text style={{ fontSize: 14 }}><UserOutlined style={{ marginRight: 8 }} /> 用户ID: {user.id}</Text>
-              <Text style={{ fontSize: 14 }}>注册时间: {new Date(user.created_at).toLocaleString('zh-CN')}</Text>
-              <Text style={{ fontSize: 14 }}>最后更新: {new Date(user.updated_at).toLocaleString('zh-CN')}</Text>
+              <Text style={{ fontSize: 14, color: '#475569' }}><UserOutlined style={{ marginRight: 8, color: '#64748B' }} /> 用户ID: {user.id}</Text>
+              <Text style={{ fontSize: 14, color: '#475569' }}>注册时间: {new Date(user.created_at).toLocaleString('zh-CN')}</Text>
+              <Text style={{ fontSize: 14, color: '#475569' }}>最后更新: {new Date(user.updated_at).toLocaleString('zh-CN')}</Text>
             </Space>
           </div>
         )}
@@ -76,10 +76,16 @@ const Settings: React.FC = () => {
             label="用户名"
             rules={[{ required: true, message: '请输入用户名' }]}
           >
-            <Input 
-              prefix={<UserOutlined style={{ color: 'rgba(0, 0, 0, 0.25)' }} />} 
-              placeholder="请输入用户名" 
+            <Input
+              prefix={<UserOutlined style={{ color: '#94A3B8', fontSize: 16 }} />}
+              placeholder="请输入用户名"
               size="large"
+              style={{
+                borderRadius: 10,
+                height: 44,
+                border: '1.5px solid #E2E8F0',
+                transition: 'all 0.2s ease'
+              }}
             />
           </Form.Item>
 
@@ -91,28 +97,55 @@ const Settings: React.FC = () => {
               { type: 'email', message: '请输入有效的邮箱地址' },
             ]}
           >
-            <Input 
-              prefix={<MailOutlined style={{ color: 'rgba(0, 0, 0, 0.25)' }} />} 
-              placeholder="请输入邮箱" 
+            <Input
+              prefix={<MailOutlined style={{ color: '#94A3B8', fontSize: 16 }} />}
+              placeholder="请输入邮箱"
               size="large"
+              style={{
+                borderRadius: 10,
+                height: 44,
+                border: '1.5px solid #E2E8F0',
+                transition: 'all 0.2s ease'
+              }}
             />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} size="large" style={{ minWidth: 120 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              size="large"
+              style={{
+                minWidth: 120,
+                height: 44,
+                borderRadius: 10,
+                fontWeight: 600
+              }}
+            >
               更新信息
             </Button>
           </Form.Item>
         </Form>
       </Card>
 
-      <Card>
-        <Title level={4} style={{ fontSize: 18, fontWeight: 600 }}>账户操作</Title>
+      <Card className="glass-card">
+        <Title level={4} style={{ fontSize: 18, fontWeight: 600, color: '#0F172A' }}>账户操作</Title>
         <Space direction="vertical" style={{ width: '100%' }}>
           <div>
-            <Text type="secondary" style={{ fontSize: 14 }}>退出登录后需要重新登录才能访问系统</Text>
+            <Text type="secondary" style={{ fontSize: 14, color: '#64748B' }}>退出登录后需要重新登录才能访问系统</Text>
             <div style={{ marginTop: 12 }}>
-              <Button onClick={handleLogout} danger size="large" style={{ minWidth: 120 }}>
+              <Button
+                onClick={handleLogout}
+                danger
+                size="large"
+                style={{
+                  minWidth: 120,
+                  height: 44,
+                  borderRadius: 10,
+                  fontWeight: 600
+                }}
+              >
                 退出登录
               </Button>
             </div>
@@ -121,8 +154,8 @@ const Settings: React.FC = () => {
           <Divider />
 
           <div>
-            <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>系统信息</Text>
-            <div style={{ marginTop: 12, fontSize: 13, color: 'rgba(0, 0, 0, 0.45)', lineHeight: 2 }}>
+            <Text type="secondary" style={{ fontSize: 14, fontWeight: 500, color: '#64748B' }}>系统信息</Text>
+            <div style={{ marginTop: 12, fontSize: 13, color: '#94A3B8', lineHeight: 2 }}>
               <div>版本: 1.0.0</div>
               <div>React: 18.2.0</div>
               <div>Ant Design: 4.21.0</div>

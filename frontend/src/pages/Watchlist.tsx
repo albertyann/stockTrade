@@ -61,7 +61,7 @@ const Watchlist: React.FC = () => {
       title: '市场',
       dataIndex: ['stock', 'market'],
       key: 'market',
-      render: (market: string) => <span style={{ color: '#1890ff' }}>{market}</span>,
+      render: (market: string) => <span style={{ color: '#3B82F6', fontWeight: 500 }}>{market}</span>,
     },
     {
       title: '行业',
@@ -104,11 +104,11 @@ const Watchlist: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700 }}>自选股管理</Title>
-        <Text type="secondary" style={{ fontSize: 15 }}>管理您关注的股票</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>自选股管理</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>管理您关注的股票</Text>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <Space style={{ marginBottom: 20, width: '100%', justifyContent: 'space-between' }}>
           <Space>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAddStock} size="large">

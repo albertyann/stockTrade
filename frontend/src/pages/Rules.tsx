@@ -125,14 +125,14 @@ const Rules: React.FC = () => {
       title: '优先级',
       dataIndex: 'priority',
       key: 'priority',
-      render: (priority: number) => <Tag color="orange">{priority}</Tag>,
+      render: (priority: number) => <Tag color="processing">{priority}</Tag>,
     },
     {
       title: '状态',
       dataIndex: 'enabled',
       key: 'enabled',
       render: (enabled: boolean) => (
-        <Tag color={enabled ? 'green' : 'red'}>{enabled ? '启用' : '禁用'}</Tag>
+        <Tag color={enabled ? 'success' : 'default'} style={{ fontWeight: 500 }}>{enabled ? '启用' : '禁用'}</Tag>
       ),
     },
     {
@@ -172,11 +172,11 @@ const Rules: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2}>分析规则</Title>
-        <Text type="secondary">配置和管理股票分析规则</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>分析规则</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>配置和管理股票分析规则</Text>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
           <Space>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
@@ -241,8 +241,8 @@ const Rules: React.FC = () => {
             <Switch />
           </Form.Item>
           <Form.Item label="条件配置">
-            <div style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-              <Text>条件配置功能正在开发中，请在创建后使用API进行配置</Text>
+            <div style={{ background: '#F1F5F9', padding: 16, borderRadius: 8, border: '1px dashed #CBD5E1' }}>
+              <Text type="secondary">条件配置功能正在开发中，请在创建后使用API进行配置</Text>
             </div>
           </Form.Item>
           <Form.Item>

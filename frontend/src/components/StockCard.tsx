@@ -37,11 +37,11 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick, isUserStock = fal
             </Title>
             <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
               {isPositive 
-                ? <ArrowUpOutlined style={{ color: '#52c41a', fontWeight: 600 }} /> 
-                : <ArrowDownOutlined style={{ color: '#ff4d4f', fontWeight: 600 }} />
+                ? <ArrowUpOutlined style={{ color: '#10B981', fontWeight: 600 }} /> 
+                : <ArrowDownOutlined style={{ color: '#EF4444', fontWeight: 600 }} />
               }
               <span style={{ 
-                color: isPositive ? '#52c41a' : '#ff4d4f', 
+                color: isPositive ? '#10B981' : '#EF4444', 
                 marginLeft: 4, 
                 fontWeight: 700,
                 fontSize: 15

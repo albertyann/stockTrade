@@ -88,54 +88,141 @@ const StockDetail: React.FC = () => {
     title: {
       text: '价格走势',
       left: 'center',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 600,
+        color: '#0F172A'
+      }
     },
     tooltip: {
       trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#E2E8F0',
+      borderWidth: 1,
+      textStyle: {
+        color: '#0F172A'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '10%',
+      top: '15%',
+      containLabel: true,
     },
     xAxis: {
       type: 'category',
       data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+      axisLine: {
+        lineStyle: {
+          color: '#E2E8F0'
+        }
+      },
+      axisLabel: {
+        color: '#64748B',
+        fontSize: 12
+      }
     },
     yAxis: {
       type: 'value',
+      axisLine: {
+        lineStyle: {
+          color: '#E2E8F0'
+        }
+      },
+      axisLabel: {
+        color: '#64748B',
+        fontSize: 12
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#F1F5F9',
+          type: 'dashed'
+        }
+      }
     },
     series: [
       {
         data: Array.from({ length: 12 }, () => price * (0.9 + Math.random() * 0.2)),
         type: 'line',
         smooth: true,
+        lineStyle: {
+          width: 3,
+          color: '#3B82F6',
+          shadowBlur: 10,
+          shadowColor: 'rgba(59, 130, 246, 0.5)'
+        },
+        itemStyle: {
+          color: '#3B82F6',
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [{
+              offset: 0, color: 'rgba(59, 130, 246, 0.3)'
+            }, {
+              offset: 1, color: 'rgba(59, 130, 246, 0.05)'
+            }]
+          }
+        },
+        symbol: 'circle',
+        symbolSize: 6,
+        showSymbol: false,
+        emphasis: {
+          focus: 'series',
+          scale: true
+        }
       },
     ],
   };
 
   return (
     <div>
-      <Space style={{ marginBottom: 16 }}>
-        <Button onClick={() => navigate(-1)}>返回</Button>
-        <Button icon={<ReloadOutlined />} onClick={fetchStock} loading={loading}>刷新</Button>
+      <Space style={{ marginBottom: 24 }}>
+        <Button
+          onClick={() => navigate(-1)}
+          style={{ borderRadius: 8 }}
+        >
+          返回
+        </Button>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchStock}
+          loading={loading}
+          style={{ borderRadius: 8 }}
+        >
+          刷新
+        </Button>
         <Button
           type={isWatched ? 'default' : 'primary'}
           icon={isWatched ? <StarFilled /> : <StarOutlined />}
           onClick={handleToggleWatch}
+          style={{ borderRadius: 8 }}
         >
           {isWatched ? '已关注' : '添加自选'}
         </Button>
       </Space>
 
-      <Card style={{ marginBottom: 24 }}>
+      <Card className="glass-card" style={{ marginBottom: 24 }}>
         <Row gutter={24}>
-          <Col span={16}>
-            <Title level={2}>{stock.code} - {stock.name}</Title>
+          <Col xs={24} sm={16}>
+            <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>{stock.code} - {stock.name}</Title>
             <Space size={24}>
-              <Text type="secondary">市场: {stock.market}</Text>
-              <Text type="secondary">行业: {stock.industry}</Text>
+              <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>市场: {stock.market}</Text>
+              <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>行业: {stock.industry}</Text>
             </Space>
           </Col>
-          <Col span={8} style={{ textAlign: 'right' }}>
-            <Title level={2} style={{ color: isPositive ? '#52c41a' : '#ff4d4f', margin: 0 }}>
+          <Col xs={24} sm={8} style={{ textAlign: 'right' }}>
+            <Title level={2} style={{ color: isPositive ? '#10B981' : '#EF4444', margin: 0, fontSize: 32 }}>
               ¥{price.toFixed(2)}
             </Title>
-            <Text style={{ fontSize: 16, color: isPositive ? '#52c41a' : '#ff4d4f', fontWeight: 600 }}>
+            <Text style={{ fontSize: 18, color: isPositive ? '#10B981' : '#EF4444', fontWeight: 600 }}>
               {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
               {isPositive ? '+' : ''}{change.toFixed(2)}%
             </Text>
@@ -144,59 +231,59 @@ const StockDetail: React.FC = () => {
       </Card>
 
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card>
-            <Statistic title="开盘价" value={price * 0.98} precision={2} prefix="¥" />
+        <Col xs={12} sm={6}>
+          <Card className="glass-card">
+            <Statistic title="开盘价" value={price * 0.98} precision={2} prefix="¥" valueStyle={{ color: '#0F172A' }} />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="最高价" value={price * 1.02} precision={2} prefix="¥" />
+        <Col xs={12} sm={6}>
+          <Card className="glass-card">
+            <Statistic title="最高价" value={price * 1.02} precision={2} prefix="¥" valueStyle={{ color: '#10B981' }} />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="最低价" value={price * 0.99} precision={2} prefix="¥" />
+        <Col xs={12} sm={6}>
+          <Card className="glass-card">
+            <Statistic title="最低价" value={price * 0.99} precision={2} prefix="¥" valueStyle={{ color: '#EF4444' }} />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="成交量" value={(Math.random() * 10 + 1).toFixed(2)} suffix="亿" />
+        <Col xs={12} sm={6}>
+          <Card className="glass-card">
+            <Statistic title="成交量" value={(Math.random() * 10 + 1).toFixed(2)} suffix="亿" valueStyle={{ color: '#0F172A' }} />
           </Card>
         </Col>
       </Row>
 
-      <Card style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ marginBottom: 16 }}>价格走势</Title>
+      <Card className="glass-card chart-card" style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ marginBottom: 16, fontSize: 18, fontWeight: 600, color: '#0F172A' }}>价格走势</Title>
         <ReactECharts option={chartOption} style={{ height: 400 }} />
       </Card>
 
       <Row gutter={16}>
-        <Col span={12}>
-          <Card title="公司简介" style={{ height: '100%' }}>
-            <Text>{stock.description || '暂无公司简介信息'}</Text>
+        <Col xs={24} md={12}>
+          <Card className="glass-card" title={<span style={{ fontSize: 16, fontWeight: 600, color: '#0F172A' }}>公司简介</span>} style={{ height: '100%' }}>
+            <Text style={{ color: '#475569', lineHeight: 1.8 }}>{stock.description || '暂无公司简介信息'}</Text>
           </Card>
         </Col>
-        <Col span={12}>
-          <Card title="财务指标" style={{ height: '100%' }}>
+        <Col xs={24} md={12}>
+          <Card className="glass-card" title={<span style={{ fontSize: 16, fontWeight: 600, color: '#0F172A' }}>财务指标</span>} style={{ height: '100%' }}>
             <Row gutter={[16, 16]}>
               <Col span={12}>
-                <Statistic title="市盈率(PE)" value={(Math.random() * 30 + 5).toFixed(2)} />
+                <Statistic title="市盈率(PE)" value={(Math.random() * 30 + 5).toFixed(2)} valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
               <Col span={12}>
-                <Statistic title="市净率(PB)" value={(Math.random() * 5 + 1).toFixed(2)} />
+                <Statistic title="市净率(PB)" value={(Math.random() * 5 + 1).toFixed(2)} valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
               <Col span={12}>
-                <Statistic title="净资产收益率(ROE)" value={(Math.random() * 20 + 5).toFixed(2)} suffix="%" />
+                <Statistic title="净资产收益率(ROE)" value={(Math.random() * 20 + 5).toFixed(2)} suffix="%" valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
               <Col span={12}>
-                <Statistic title="每股收益(EPS)" value={(Math.random() * 5 + 0.5).toFixed(2)} />
+                <Statistic title="每股收益(EPS)" value={(Math.random() * 5 + 0.5).toFixed(2)} valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
               <Col span={12}>
-                <Statistic title="股息率" value={(Math.random() * 5 + 0.5).toFixed(2)} suffix="%" />
+                <Statistic title="股息率" value={(Math.random() * 5 + 0.5).toFixed(2)} suffix="%" valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
               <Col span={12}>
-                <Statistic title="总市值" value={`${(Math.random() * 1000 + 100).toFixed(0)}亿`} />
+                <Statistic title="总市值" value={`${(Math.random() * 1000 + 100).toFixed(0)}亿`} valueStyle={{ fontSize: 20, fontWeight: 600, color: '#0F172A' }} />
               </Col>
             </Row>
           </Card>

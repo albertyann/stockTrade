@@ -67,7 +67,7 @@ const StockList: React.FC = () => {
       key: 'change',
       render: (change?: number) => {
         if (!change) return '-';
-        const color = change >= 0 ? '#52c41a' : '#ff4d4f';
+        const color = change >= 0 ? '#10B981' : '#EF4444';
         return <Text style={{ color, fontWeight: 600 }}>{change >= 0 ? '+' : ''}{change.toFixed(2)}%</Text>;
       },
     },
@@ -96,24 +96,24 @@ const StockList: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700 }}>股票列表</Title>
-        <Text type="secondary" style={{ fontSize: 15 }}>查看和管理所有股票信息</Text>
+        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>股票列表</Title>
+        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>查看和管理所有股票信息</Text>
       </div>
 
-      <Card style={{ marginBottom: 24 }}>
+      <Card className="glass-card" style={{ marginBottom: 24 }}>
         <Row gutter={16}>
           <Col xs={12} sm={6}>
             <Statistic 
               title="股票总数" 
               value={stocks.length}
-              valueStyle={{ fontWeight: 700, fontSize: 28 }}
+              valueStyle={{ fontWeight: 700, fontSize: 28, color: '#0F172A' }}
             />
           </Col>
           <Col xs={12} sm={6}>
             <Statistic 
               title="今日上涨" 
               value={stocks.filter(s => s.change && s.change > 0).length} 
-              valueStyle={{ color: '#52c41a', fontWeight: 700, fontSize: 28 }}
+              valueStyle={{ color: '#10B981', fontWeight: 700, fontSize: 28 }}
               prefix="📈"
             />
           </Col>
@@ -121,7 +121,7 @@ const StockList: React.FC = () => {
             <Statistic 
               title="今日下跌" 
               value={stocks.filter(s => s.change && s.change < 0).length} 
-              valueStyle={{ color: '#ff4d4f', fontWeight: 700, fontSize: 28 }}
+              valueStyle={{ color: '#EF4444', fontWeight: 700, fontSize: 28 }}
               prefix="📉"
             />
           </Col>
@@ -129,7 +129,7 @@ const StockList: React.FC = () => {
             <Statistic 
               title="平盘" 
               value={stocks.filter(s => !s.change || s.change === 0).length}
-              valueStyle={{ fontWeight: 700, fontSize: 28 }}
+              valueStyle={{ fontWeight: 700, fontSize: 28, color: '#64748B' }}
               prefix="➖"
             />
           </Col>
