@@ -1,9 +1,5 @@
 import React from 'react';
-import { Card, Typography, Space, Tag } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { Stock } from '../types';
-
-const { Title, Text } = Typography;
 
 interface StockCardProps {
   stock: Stock;
@@ -15,78 +11,65 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick, isUserStock = fal
   const price = stock.price ?? 100.50;
   const change = stock.change ?? 2.5;
   const isPositive = change >= 0;
+  const volume = (Math.random() * 10 + 1).toFixed(1);
+  const marketCap = (Math.random() * 1000 + 100).toFixed(0);
+  const pe = (Math.random() * 30 + 5).toFixed(1);
 
   return (
-    <Card
-      hoverable
+    <div
       onClick={onClick}
-      className="stock-card"
-      style={{ marginBottom: 16, borderRadius: 8, height: '100%' }}
-      bodyStyle={{ padding: 20 }}
+      className="card p-5 cursor-pointer hover:shadow-lg hover:shadow-gray-200/50 transition-all duration-200 hover:-translate-y-0.5"
     >
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <Title level={4} style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{stock.code}</Title>
-            <Text type="secondary" style={{ fontSize: 14 }}>{stock.name}</Text>
-            {isUserStock && <Tag color="blue" style={{ marginLeft: 8, fontSize: 12, fontWeight: 500, borderRadius: 4 }}>自选</Tag>}
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <Title level={3} style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>
-              ¥{price.toFixed(2)}
-            </Title>
-            <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
-              {isPositive 
-                ? <ArrowUpOutlined style={{ color: '#10B981', fontWeight: 600 }} /> 
-                : <ArrowDownOutlined style={{ color: '#EF4444', fontWeight: 600 }} />
-              }
-              <span style={{ 
-                color: isPositive ? '#10B981' : '#EF4444', 
-                marginLeft: 4, 
-                fontWeight: 700,
-                fontSize: 15
-              }}>
-                {isPositive ? '+' : ''}{change.toFixed(2)}%
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-lg font-bold text-gray-900">{stock.code}</h3>
+            {isUserStock && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
+                自选
               </span>
-            </Text>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 truncate">{stock.name}</p>
+        </div>
+        <div className="text-right ml-3">
+          <div className="text-xl font-bold text-gray-900">
+            ¥{price.toFixed(2)}
+          </div>
+          <div className={`flex items-center gap-1 text-sm font-semibold ${
+            isPositive ? 'text-success-600' : 'text-danger-600'
+          }`}>
+            <span className={isPositive ? 'rotate-45' : 'rotate-225'}>→</span>
+            {isPositive ? '+' : ''}{change.toFixed(2)}%
           </div>
         </div>
-        
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          marginTop: 12, 
-          paddingTop: 12, 
-          borderTop: '1px solid #f0f0f0' 
-        }}>
-          <Text type="secondary" style={{ fontSize: 12, fontWeight: 500 }}>
-            成交量: {(Math.random() * 10 + 1).toFixed(2)}亿
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12, fontWeight: 500 }}>
-            市值: {(Math.random() * 1000 + 100).toFixed(0)}亿
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12, fontWeight: 500 }}>
-            PE: {(Math.random() * 30 + 5).toFixed(1)}
-          </Text>
+      </div>
+
+      <div className="h-px bg-gray-100 my-3" />
+
+      <div className="flex justify-between text-xs text-gray-500">
+        <div className="text-center">
+          <div className="text-[10px] text-gray-400 mb-0.5">成交量</div>
+          <div className="font-medium text-gray-700">{volume}亿</div>
         </div>
-        
-        {stock.industry && (
-          <div style={{ marginTop: 8 }}>
-            <Tag 
-              color="cyan" 
-              style={{ 
-                fontSize: 12, 
-                padding: '2px 10px', 
-                borderRadius: 4, 
-                fontWeight: 500 
-              }}
-            >
-              {stock.industry}
-            </Tag>
-          </div>
-        )}
-      </Space>
-    </Card>
+        <div className="text-center">
+          <div className="text-[10px] text-gray-400 mb-0.5">市值</div>
+          <div className="font-medium text-gray-700">{marketCap}亿</div>
+        </div>
+        <div className="text-center">
+          <div className="text-[10px] text-gray-400 mb-0.5">PE</div>
+          <div className="font-medium text-gray-700">{pe}</div>
+        </div>
+      </div>
+
+      {stock.industry && (
+        <div className="mt-3">
+          <span className="inline-block px-2.5 py-1 text-xs font-medium bg-cyan-50 text-cyan-700 rounded-md">
+            {stock.industry}
+          </span>
+        </div>
+      )}
+    </div>
   );
 };
 

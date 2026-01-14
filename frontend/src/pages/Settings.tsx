@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Typography, Form, Input, Button, message, Space, Divider } from 'antd';
-import { UserOutlined, MailOutlined } from '@ant-design/icons';
+import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import { User } from '../types';
-
-const { Title, Text } = Typography;
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+  });
 
   const fetchUser = useCallback(async () => {
     try {
       const response = await userAPI.getCurrentUser();
       setUser(response.data);
-      form.setFieldsValue({
+      setFormData({
         username: response.data.username,
         email: response.data.email,
       });
@@ -25,16 +25,34 @@ const Settings: React.FC = () => {
       message.error('获取用户信息失败');
       console.error('获取用户信息失败:', error);
     }
-  }, [form]);
+  }, []);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  const handleUpdateProfile = async (values: any) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.username.trim()) {
+      message.error('请输入用户名');
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      message.error('请输入邮箱');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      message.error('请输入有效的邮箱地址');
+      return;
+    }
+
     setLoading(true);
     try {
-      await userAPI.updateCurrentUser(values);
+      await userAPI.updateCurrentUser(formData);
       message.success('更新成功');
       fetchUser();
     } catch (error) {
@@ -53,116 +71,120 @@ const Settings: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700, color: '#0F172A' }}>设置</Title>
-        <Text type="secondary" style={{ fontSize: 15, color: '#64748B' }}>管理您的账户设置</Text>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">设置</h2>
+        <p className="text-gray-500">管理您的账户设置</p>
       </div>
 
-      <Card className="glass-card" style={{ marginBottom: 24 }}>
-        <Title level={4} style={{ fontSize: 18, fontWeight: 600, color: '#0F172A' }}>个人信息</Title>
+      <div className="card p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">个人信息</h3>
         {user && (
-          <div style={{ marginBottom: 24, padding: '16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-            <Space direction="vertical" size={12}>
-              <Text style={{ fontSize: 14, color: '#475569' }}><UserOutlined style={{ marginRight: 8, color: '#64748B' }} /> 用户ID: {user.id}</Text>
-              <Text style={{ fontSize: 14, color: '#475569' }}>注册时间: {new Date(user.created_at).toLocaleString('zh-CN')}</Text>
-              <Text style={{ fontSize: 14, color: '#475569' }}>最后更新: {new Date(user.updated_at).toLocaleString('zh-CN')}</Text>
-            </Space>
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-gray-700">
+                <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                用户ID: {user.id}
+              </div>
+              <div className="flex items-center text-sm text-gray-700">
+                <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                注册时间: {new Date(user.created_at).toLocaleString('zh-CN')}
+              </div>
+              <div className="flex items-center text-sm text-gray-700">
+                <svg className="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                最后更新: {new Date(user.updated_at).toLocaleString('zh-CN')}
+              </div>
+            </div>
           </div>
         )}
 
-        <Form form={form} layout="vertical" onFinish={handleUpdateProfile}>
-          <Form.Item
-            name="username"
-            label="用户名"
-            rules={[{ required: true, message: '请输入用户名' }]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: '#94A3B8', fontSize: 16 }} />}
-              placeholder="请输入用户名"
-              size="large"
-              style={{
-                borderRadius: 10,
-                height: 44,
-                border: '1.5px solid #E2E8F0',
-                transition: 'all 0.2s ease'
-              }}
-            />
-          </Form.Item>
+        <form onSubmit={handleUpdateProfile} className="space-y-4">
+          <div>
+            <label className="label">
+              用户名 <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className="input pl-10"
+                placeholder="请输入用户名"
+                required
+              />
+            </div>
+          </div>
 
-          <Form.Item
-            name="email"
-            label="邮箱"
-            rules={[
-              { required: true, message: '请输入邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
-            ]}
-          >
-            <Input
-              prefix={<MailOutlined style={{ color: '#94A3B8', fontSize: 16 }} />}
-              placeholder="请输入邮箱"
-              size="large"
-              style={{
-                borderRadius: 10,
-                height: 44,
-                border: '1.5px solid #E2E8F0',
-                transition: 'all 0.2s ease'
-              }}
-            />
-          </Form.Item>
+          <div>
+            <label className="label">
+              邮箱 <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="input pl-10"
+                placeholder="请输入邮箱"
+                required
+              />
+            </div>
+          </div>
 
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              size="large"
-              style={{
-                minWidth: 120,
-                height: 44,
-                borderRadius: 10,
-                fontWeight: 600
-              }}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary flex items-center gap-2 disabled:opacity-50"
             >
-              更新信息
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      <Card className="glass-card">
-        <Title level={4} style={{ fontSize: 18, fontWeight: 600, color: '#0F172A' }}>账户操作</Title>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <div>
-            <Text type="secondary" style={{ fontSize: 14, color: '#64748B' }}>退出登录后需要重新登录才能访问系统</Text>
-            <div style={{ marginTop: 12 }}>
-              <Button
-                onClick={handleLogout}
-                danger
-                size="large"
-                style={{
-                  minWidth: 120,
-                  height: 44,
-                  borderRadius: 10,
-                  fontWeight: 600
-                }}
-              >
-                退出登录
-              </Button>
-            </div>
+              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {loading ? '更新中...' : '更新信息'}
+            </button>
           </div>
+        </form>
+      </div>
 
-          <Divider />
+      <div className="card p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">账户操作</h3>
+        <div>
+          <p className="text-sm text-gray-500 mb-4">退出登录后需要重新登录才能访问系统</p>
+          <button
+            onClick={handleLogout}
+            className="btn-danger flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            退出登录
+          </button>
+        </div>
+      </div>
 
-          <div>
-            <Text type="secondary" style={{ fontSize: 14, fontWeight: 500, color: '#64748B' }}>系统信息</Text>
-            <div style={{ marginTop: 12, fontSize: 13, color: '#94A3B8', lineHeight: 2 }}>
-              <div>版本: 1.0.0</div>
-              <div>React: 18.2.0</div>
-              <div>Ant Design: 4.21.0</div>
-            </div>
-          </div>
-        </Space>
-      </Card>
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">系统信息</h3>
+        <div className="space-y-2 text-sm text-gray-500">
+          <div>版本: 1.0.0</div>
+          <div>React: 18.2.0</div>
+          <div>Ant Design: 4.21.0</div>
+        </div>
+      </div>
     </div>
   );
 };

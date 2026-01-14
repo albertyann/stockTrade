@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Space, Row, Col, Statistic, Button, Table, Tag } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, SyncOutlined, BellOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import StockCard from '../components/StockCard';
 import { userStockAPI } from '../services/api';
 import { UserStock } from '../types';
-
-const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
   const [, setUserStocks] = useState<UserStock[]>([]);
@@ -36,10 +32,10 @@ const Dashboard: React.FC = () => {
   ];
 
   const hotStocks = [
-    { code: 'AAPL', name: '苹果公司', price: 150.20, change: 1.8, volume: 25000000 },
-    { code: 'TSLA', name: '特斯拉', price: 230.50, change: -2.3, volume: 32000000 },
-    { code: 'MSFT', name: '微软', price: 380.10, change: 0.9, volume: 18000000 },
-    { code: 'AMZN', name: '亚马逊', price: 135.80, change: -0.5, volume: 20000000 },
+    { code: 'AAPL', name: '苹果公司', price: 150.20, change: 1.8 },
+    { code: 'TSLA', name: '特斯拉', price: 230.50, change: -2.3 },
+    { code: 'MSFT', name: '微软', price: 380.10, change: 0.9 },
+    { code: 'AMZN', name: '亚马逊', price: 135.80, change: -0.5 },
   ];
 
   const analysisResults = [
@@ -47,35 +43,6 @@ const Dashboard: React.FC = () => {
     { key: '2', stockCode: 'TSLA', ruleName: '成交量放大', matched: false, time: '2023-06-15 09:45' },
     { key: '3', stockCode: 'MSFT', ruleName: 'RSI超卖', matched: true, time: '2023-06-14 14:20' },
     { key: '4', stockCode: 'AMZN', ruleName: 'MACD金叉', matched: true, time: '2023-06-14 11:15' },
-  ];
-
-  const columns = [
-    {
-      title: '股票代码',
-      dataIndex: 'stockCode',
-      key: 'stockCode',
-      render: (text: string) => <Text strong>{text}</Text>,
-    },
-    {
-      title: '匹配规则',
-      dataIndex: 'ruleName',
-      key: 'ruleName',
-    },
-    {
-      title: '匹配结果',
-      dataIndex: 'matched',
-      key: 'matched',
-      render: (matched: boolean) => (
-        <Tag color={matched ? 'green' : 'red'}>
-          {matched ? '匹配成功' : '未匹配'}
-        </Tag>
-      ),
-    },
-    {
-      title: '时间',
-      dataIndex: 'time',
-      key: 'time',
-    },
   ];
 
   const chartOption = {
@@ -88,10 +55,10 @@ const Dashboard: React.FC = () => {
         }
       },
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#d9d9d9',
+      borderColor: '#e5e7eb',
       borderWidth: 1,
       textStyle: {
-        color: '#262626'
+        color: '#1f2937'
       }
     },
     legend: {
@@ -102,7 +69,7 @@ const Dashboard: React.FC = () => {
       textStyle: {
         fontSize: 14,
         fontWeight: 500,
-        color: '#595959'
+        color: '#6b7280'
       }
     },
     grid: {
@@ -118,11 +85,11 @@ const Dashboard: React.FC = () => {
       data: ['09:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30', '15:00'],
       axisLine: {
         lineStyle: {
-          color: '#d9d9d9'
+          color: '#e5e7eb'
         }
       },
       axisLabel: {
-        color: '#595959',
+        color: '#6b7280',
         fontSize: 12
       }
     },
@@ -132,16 +99,16 @@ const Dashboard: React.FC = () => {
       max: 400,
       axisLine: {
         lineStyle: {
-          color: '#d9d9d9'
+          color: '#e5e7eb'
         }
       },
       axisLabel: {
-        color: '#595959',
+        color: '#6b7280',
         fontSize: 12
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0',
+          color: '#f3f4f6',
           type: 'dashed'
         }
       }
@@ -300,70 +267,57 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontSize: 28, fontWeight: 700 }}>仪表盘</Title>
-        <Text type="secondary" style={{ fontSize: 15 }}>股票数据概览和实时分析</Text>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">仪表盘</h2>
+        <p className="text-gray-500">股票数据概览和实时分析</p>
       </div>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {marketOverview.map((item, index) => (
-          <Col key={index} xs={24} sm={12} lg={6}>
-            <Card className="statistic-card" hoverable>
-              <Statistic
-                title={item.title}
-                value={parseFloat(item.value)}
-                precision={2}
-                valueStyle={{ 
-                  color: item.positive ? '#10B981' : '#EF4444',
-                  fontWeight: 700,
-                  fontSize: 32,
-                }}
-                prefix={item.positive 
-                  ? <ArrowUpOutlined style={{ color: '#10B981' }} /> 
-                  : <ArrowDownOutlined style={{ color: '#EF4444' }} />
-                }
-                suffix={
-                  <Tag 
-                    color={item.positive ? 'success' : 'error'}
-                    style={{ 
-                      fontWeight: 600,
-                      padding: '4px 12px',
-                      borderRadius: 4,
-                      fontSize: 14,
-                    }}
-                  >
-                    {item.positive ? '+' : ''}{item.change.toFixed(1)}%
-                  </Tag>
-                }
-              />
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      <Card className="chart-card" style={{ marginBottom: 24 }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 20 }}>
-          <div>
-            <Title level={3} style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>股票价格走势</Title>
-            <Text type="secondary" style={{ fontSize: 14 }}>实时追踪主要股票价格变化</Text>
+          <div key={index} className="card p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">{item.title}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {parseFloat(item.value).toFixed(2)}
+                </p>
+              </div>
+              <span className={`
+                px-2.5 py-1 text-sm font-semibold rounded-full
+                ${item.positive ? 'bg-success-50 text-success-700' : 'bg-danger-50 text-danger-700'}
+              `}>
+                {item.positive ? '↑' : '↓'} {Math.abs(item.change).toFixed(1)}%
+              </span>
+            </div>
           </div>
-          <Button 
-            icon={<SyncOutlined />} 
-            onClick={fetchUserStocks} 
-            loading={loading}
-            type="primary"
-          >
-            刷新数据
-          </Button>
-        </Space>
-        <ReactECharts option={chartOption} style={{ height: 420 }} />
-      </Card>
+        ))}
+      </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <Title level={3} className="section-title">热门股票</Title>
-        <Row gutter={[16, 16]}>
+      <div className="card p-6 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">股票价格走势</h3>
+            <p className="text-sm text-gray-500">实时追踪主要股票价格变化</p>
+          </div>
+          <button
+            onClick={fetchUserStocks}
+            disabled={loading}
+            className="btn-primary px-4 py-2 flex items-center gap-2"
+          >
+            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            刷新数据
+          </button>
+        </div>
+        <ReactECharts option={chartOption} style={{ height: 400 }} />
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">热门股票</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {hotStocks.map((stock, index) => (
-            <Col key={index} xs={24} sm={12} lg={6}>
+            <div key={index}>
               <StockCard
                 stock={{
                   id: index,
@@ -379,28 +333,72 @@ const Dashboard: React.FC = () => {
                 }}
                 onClick={() => console.log('查看股票详情:', stock.code)}
               />
-            </Col>
+            </div>
           ))}
-        </Row>
+        </div>
       </div>
 
-      <Card className="table-card">
-        <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div className="card p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <Title level={3} style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>规则分析结果</Title>
-            <Text type="secondary" style={{ fontSize: 14 }}>实时监控的股票分析规则匹配情况</Text>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">规则分析结果</h3>
+            <p className="text-sm text-gray-500">实时监控的股票分析规则匹配情况</p>
           </div>
-          <Button icon={<BellOutlined />} type="default">通知</Button>
-        </Space>
-        <Table
-          columns={columns}
-          dataSource={analysisResults}
-          pagination={{ pageSize: 5, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
-          bordered={false}
-          size="middle"
-          rowKey="key"
-        />
-      </Card>
+          <button className="btn-secondary px-4 py-2 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            通知
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  股票代码
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  匹配规则
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  匹配结果
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  时间
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {analysisResults.map((result) => (
+                <tr key={result.key} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span className="font-semibold text-gray-900">{result.stockCode}</span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-gray-700">
+                    {result.ruleName}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span className={`
+                      inline-flex px-2.5 py-1 text-xs font-semibold rounded-full
+                      ${result.matched 
+                        ? 'bg-success-50 text-success-700' 
+                        : 'bg-danger-50 text-danger-700'
+                      }
+                    `}>
+                      {result.matched ? '匹配成功' : '未匹配'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                    {result.time}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

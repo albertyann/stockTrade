@@ -1,210 +1,188 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Checkbox, Divider } from 'antd';
-import { UserOutlined, LockOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import React, { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../services/api';
 
-const { Title, Text, Link } = Typography;
-
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    remember: false
+  });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
 
-  const onFinish = async (values: { username: string; password: string }) => {
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.username) {
+      newErrors.username = '请输入用户名';
+    } else if (formData.username.length < 3) {
+      newErrors.username = '用户名至少3个字符';
+    }
+
+    if (!formData.password) {
+      newErrors.password = '请输入密码';
+    } else if (formData.password.length < 6) {
+      newErrors.password = '密码至少6个字符';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
-      const response = await userAPI.login(values);
+      const response = await userAPI.login({
+        username: formData.username,
+        password: formData.password
+      });
       localStorage.setItem('access_token', response.data.access_token);
-      message.success('登录成功');
       navigate('/');
     } catch (error) {
-      message.error('登录失败，请检查用户名和密码');
-      console.error('登录失败:', error);
+      setErrors({ submit: '登录失败，请检查用户名和密码' });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* 背景装饰元素 */}
-      <div style={{
-        position: 'absolute',
-        top: '-50%',
-        right: '-50%',
-        width: '100%',
-        height: '200%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
-        backgroundSize: '50px 50px',
-        transform: 'rotate(15deg)',
-        opacity: 0.3
-      }} />
-      
-      <Card
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          borderRadius: 16,
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1)',
-          border: 'none',
-          position: 'relative',
-          zIndex: 1,
-          overflow: 'hidden'
-        }}
-        bodyStyle={{ padding: 40 }}
-      >
-        {/* 卡片装饰条 */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%)'
-        }} />
-        
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
-            width: 64,
-            height: 64,
-            margin: '0 auto 20px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 28,
-            color: '#fff',
-            boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)'
-          }}>
-            📈
-          </div>
-          <Title level={2} style={{ 
-            margin: 0, 
-            fontSize: 28, 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: 8
-          }}>
-            股票分析系统
-          </Title>
-        </div>
-
-        <Form
-          name="login"
-          onFinish={onFinish}
-          autoComplete="off"
-          requiredMark={false}
-        >
-          <Form.Item
-            label={<span style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 6 }}>用户名</span>}
-            name="username"
-            rules={[
-              { required: true, message: '请输入用户名' },
-              { min: 3, message: '用户名至少3个字符' }
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: '#8C8C8C', fontSize: 16 }} />}
-              placeholder="请输入用户名"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={<span style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 6 }}>密码</span>}
-            name="password"
-            rules={[
-              { required: true, message: '请输入密码' },
-              { min: 6, message: '密码至少6个字符' }
-            ]}
-            style={{ marginTop: 24 }}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#8C8C8C', fontSize: 16 }} />}
-              placeholder="请输入密码"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 8, marginTop: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Form.Item name="remember" valuePropName="checked" noStyle>
-                <Checkbox style={{ fontSize: 14, color: '#666' }}>
-                  记住我
-                </Checkbox>
-              </Form.Item>
-              
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden">
+          <div className="px-8 pt-10 pb-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-primary-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
+                <span className="text-3xl">📈</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                股票分析系统
+              </h1>
+              <p className="text-gray-500 text-sm">
+                欢迎回来，请登录您的账户
+              </p>
             </div>
-          </Form.Item>
 
-          <Form.Item style={{ marginBottom: 24, marginTop: 16 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-              size="large"
-            >
-              {loading ? '登录中...' : '登录'}
-            </Button>
-          </Form.Item>
-        </Form>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="username" className="label">
+                  用户名
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className={`input ${errors.username ? 'border-danger-500 focus:ring-danger-500' : ''}`}
+                  placeholder="请输入用户名"
+                  autoComplete="username"
+                />
+                {errors.username && (
+                  <p className="mt-1.5 text-sm text-danger-600">{errors.username}</p>
+                )}
+              </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <Link
-                href="#"
-                className="login-link"
+              <div>
+                <label htmlFor="password" className="label">
+                  密码
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`input ${errors.password ? 'border-danger-500 focus:ring-danger-500' : ''}`}
+                  placeholder="请输入密码"
+                  autoComplete="current-password"
+                />
+                {errors.password && (
+                  <p className="mt-1.5 text-sm text-danger-600">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  name="remember"
+                  type="checkbox"
+                  checked={formData.remember}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
+                />
+                <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+                  记住我
+                </label>
+              </div>
+
+              {errors.submit && (
+                <div className="bg-danger-50 border border-danger-200 rounded-lg px-4 py-3">
+                  <p className="text-sm text-danger-800">{errors.submit}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                忘记密码？
-              </Link>
-          <Text type="secondary" style={{ fontSize: 14, color: '#666' }}>
-            还没有账号？
-          </Text>
-          <Link
-            href="#"
-            className="login-link"
-            style={{ marginLeft: 6 }}
-          >
-            立即注册
-          </Link>
-          
-        </div>
-
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: 32,
-          paddingTop: 24,
-          borderTop: '1px solid #F0F0F0'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: 8,
-            marginBottom: 8
-          }}>
-            <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: 14 }} />
-            <Text type="secondary" style={{ fontSize: 12, color: '#8C8C8C' }}>
-              安全登录 · 数据加密 · 隐私保护
-            </Text>
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    登录中...
+                  </span>
+                ) : (
+                  '登录'
+                )}
+              </button>
+            </form>
           </div>
-          <Text type="secondary" style={{ fontSize: 12, color: '#8C8C8C' }}>
-            © 2026 股票分析系统. All rights reserved.
-          </Text>
+
+          <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-4 text-sm">
+              <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+                忘记密码？
+              </a>
+              <span className="text-gray-300">|</span>
+              <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+                立即注册
+              </a>
+            </div>
+          </div>
+
+          <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 text-center">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500 mb-2">
+              <svg className="w-4 h-4 text-success-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>安全登录 · 数据加密 · 隐私保护</span>
+            </div>
+            <p className="text-xs text-gray-400">
+              © 2026 股票分析系统. All rights reserved.
+            </p>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
