@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./stock_analysis.db"
+    DATABASE_URL: str = "sqlite:///./db/stock_analysis.db"
     REDIS_URL: str = "redis://localhost:6379/0"
     INFLUXDB_URL: str = "http://localhost:8086"
     INFLUXDB_TOKEN: str = "your-influxdb-token"
