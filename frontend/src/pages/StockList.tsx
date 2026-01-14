@@ -1,12 +1,14 @@
 import React, { useEffect, useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { stockAPI } from '../services/api';
+import { message } from 'antd';
+import { stockAPI, syncAPI } from '../services/api';
 import { Stock } from '../types';
 
 const StockList: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
 
   const fetchStocks = async () => {
@@ -29,10 +31,29 @@ const StockList: React.FC = () => {
     e.preventDefault();
   };
 
-  const filteredStocks = stocks.filter(stock =>
-    stock.code.toLowerCase().includes(searchText.toLowerCase()) ||
-    stock.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const handleSyncAllStocks = async () => {
+    setSyncLoading(true);
+    try {
+      const response = await syncAPI.syncAllStocks({ list_status: 'L' });
+      if (response.data.success) {
+        message.success(response.data.message);
+        fetchStocks();
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      message.error('同步股票数据失败');
+      console.error('同步失败:', error);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const filteredStocks = stocks.filter(stock => {
+    const code = stock.code || stock.ts_code || stock.symbol || '';
+    return code.toLowerCase().includes(searchText.toLowerCase()) ||
+      stock.name.toLowerCase().includes(searchText.toLowerCase());
+  });
 
   const totalStocks = stocks.length;
   const upStocks = stocks.filter(s => s.change && s.change > 0).length;
@@ -103,6 +124,16 @@ const StockList: React.FC = () => {
             </svg>
             刷新
           </button>
+          <button
+            onClick={handleSyncAllStocks}
+            disabled={syncLoading}
+            className="btn-primary px-6 py-2.5 flex items-center justify-center gap-2"
+          >
+            <svg className={`w-5 h-5 ${syncLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {syncLoading ? '同步中...' : '同步所有股票'}
+          </button>
         </div>
 
         <div className="overflow-x-auto">
@@ -150,52 +181,55 @@ const StockList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredStocks.map((stock) => (
-                  <tr key={stock.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="font-semibold text-gray-900">{stock.code}</span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                      {stock.name}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="inline-block px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md">
-                        {stock.market}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="inline-block px-2.5 py-1 text-xs font-medium bg-cyan-50 text-cyan-700 rounded-md">
-                        {stock.industry}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                      {stock.price ? `¥${stock.price.toFixed(2)}` : '-'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      {stock.change !== undefined ? (
-                        <span className={`font-semibold ${
-                          stock.change >= 0 ? 'text-success-600' : 'text-danger-600'
-                        }`}>
-                          {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%
+                filteredStocks.map((stock) => {
+                  const code = stock.code || stock.ts_code || stock.symbol || '-';
+                  return (
+                    <tr key={stock.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className="font-semibold text-gray-900">{code}</span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
+                        {stock.name}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className="inline-block px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md">
+                          {stock.market || '-'}
                         </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => navigate(`/stocks/${stock.id}`)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        详情
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className="inline-block px-2.5 py-1 text-xs font-medium bg-cyan-50 text-cyan-700 rounded-md">
+                          {stock.industry || '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
+                        {stock.price ? `¥${stock.price.toFixed(2)}` : '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {stock.change !== undefined ? (
+                          <span className={`font-semibold ${
+                            stock.change >= 0 ? 'text-success-600' : 'text-danger-600'
+                          }`}>
+                            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => navigate(`/stocks/${stock.id}`)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          详情
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

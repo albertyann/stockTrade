@@ -157,9 +157,13 @@ const Login: React.FC = () => {
 
           <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+              <button
+                type="button"
+                onClick={(e) => e.preventDefault()}
+                className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer bg-transparent border-0 p-0"
+              >
                 忘记密码？
-              </a>
+              </button>
             </div>
           </div>
 

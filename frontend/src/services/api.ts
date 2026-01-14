@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -160,6 +160,9 @@ export const syncAPI = {
   syncFinancialData: (data: SyncRequest): Promise<{ data: SyncResult }> => 
     api.post('/sync/financials', data),
   
+  syncAllStocks: (params?: { list_status?: string; market?: string }): Promise<{ data: SyncResult }> => 
+    api.post('/sync/all-stocks', {}, { params }),
+  
   getSyncStatus: (): Promise<{ data: SyncStatus }> => 
     api.get('/sync/status'),
 };
@@ -172,14 +175,70 @@ export const ruleEngineAPI = {
 
 // 分析结果相关API
 export const analysisResultAPI = {
-  getAnalysisResults: (params: { skip?: number; limit?: number } = {}): Promise<{ data: AnalysisResult[] }> => 
+  getAnalysisResults: (params: { skip?: number; limit?: number } = {}): Promise<{ data: AnalysisResult[] }> =>
     api.get('/analysis-results', { params }),
-  
-  getAnalysisResult: (id: number): Promise<{ data: AnalysisResult }> => 
+
+  getAnalysisResult: (id: number): Promise<{ data: AnalysisResult }> =>
     api.get(`/analysis-results/${id}`),
-  
-  deleteAnalysisResult: (id: number): Promise<void> => 
+
+  deleteAnalysisResult: (id: number): Promise<void> =>
     api.delete(`/analysis-results/${id}`),
+};
+
+// 分析任务相关API
+export const analysisTaskAPI = {
+  getAnalysisTasks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: AnalysisTask[] }> =>
+    api.get('/analysis-tasks', { params }),
+
+  getAnalysisTask: (id: number): Promise<{ data: AnalysisTask }> =>
+    api.get(`/analysis-tasks/${id}`),
+
+  createAnalysisTask: (data: { task_name: string; rule_ids?: number[] }): Promise<{ data: AnalysisTask }> =>
+    api.post('/analysis-tasks', data),
+
+  executeAnalysisTask: (id: number): Promise<{ data: { task_id: number; status: string; message: string } }> =>
+    api.post(`/analysis-tasks/${id}/execute`),
+
+  getTaskStatus: (id: number): Promise<{ data: { status: string; started_at: string; completed_at: string; error_message: string; matched_count: number } }> =>
+    api.get(`/analysis-tasks/${id}/status`),
+
+  cancelTask: (id: number): Promise<{ data: { message: string } }> =>
+    api.post(`/analysis-tasks/${id}/cancel`),
+};
+
+// 系统设置相关API
+export const systemSettingAPI = {
+  getSystemSettings: (params: { skip?: number; limit?: number } = {}): Promise<{ data: any[] }> =>
+    api.get('/system-settings', { params }),
+
+  getSettingsByCategory: (category: string): Promise<{ data: any[] }> =>
+    api.get(`/system-settings/category/${category}`),
+
+  getSetting: (key: string): Promise<{ data: any }> =>
+    api.get(`/system-settings/${key}`),
+
+  createSetting: (data: any): Promise<{ data: any }> =>
+    api.post('/system-settings', data),
+
+  updateSetting: (key: string, data: any): Promise<{ data: any }> =>
+    api.put(`/system-settings/${key}`, data),
+
+  deleteSetting: (key: string): Promise<void> =>
+    api.delete(`/system-settings/${key}`),
+
+  // AI 配置
+  getAISettings: (): Promise<{ data: any }> =>
+    api.get('/system-settings/ai/config'),
+
+  updateAISettings: (data: AISettings): Promise<{ data: { message: string } }> =>
+    api.put('/system-settings/ai/config', data),
+
+  // 调度器配置
+  getSchedulerSettings: (): Promise<{ data: SchedulerSettings }> =>
+    api.get('/system-settings/scheduler/config'),
+
+  updateSchedulerSettings: (data: SchedulerSettings): Promise<{ data: { message: string } }> =>
+    api.put('/system-settings/scheduler/config', data),
 };
 
 const apiServices = {
@@ -192,6 +251,8 @@ const apiServices = {
   sync: syncAPI,
   ruleEngine: ruleEngineAPI,
   analysisResult: analysisResultAPI,
+  analysisTask: analysisTaskAPI,
+  systemSetting: systemSettingAPI,
 };
 
 export default apiServices;

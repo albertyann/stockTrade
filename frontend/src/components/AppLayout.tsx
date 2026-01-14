@@ -37,6 +37,11 @@ const menuItems = [
     label: '分析规则',
   },
   {
+    key: '/analysis-tasks',
+    icon: '📋',
+    label: '分析任务',
+  },
+  {
     key: '/settings',
     icon: '⚙️',
     label: '系统设置',

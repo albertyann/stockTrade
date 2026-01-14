@@ -10,6 +10,8 @@ import Files from './pages/Files';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
 import StockDetail from './pages/StockDetail';
+import AnalysisTaskDetail from './pages/AnalysisTaskDetail';
+import AnalysisTasks from './pages/AnalysisTasks';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -47,17 +49,19 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <AppLayout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/stocks" element={<StockList />} />
-                  <Route path="/stocks/:id" element={<StockDetail />} />
-                  <Route path="/watchlist" element={<Watchlist />} />
-                  <Route path="/notes" element={<Notes />} />
-                  <Route path="/files" element={<Files />} />
-                  <Route path="/rules" element={<Rules />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/stocks" element={<StockList />} />
+          <Route path="/stocks/:id" element={<StockDetail />} />
+          <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/files" element={<Files />} />
+          <Route path="/rules" element={<Rules />} />
+          <Route path="/analysis-tasks" element={<AnalysisTasks />} />
+          <Route path="/analysis-tasks/:id" element={<AnalysisTaskDetail />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
               </AppLayout>
             </ProtectedRoute>
           }

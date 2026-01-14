@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analysisRuleAPI, ruleEngineAPI } from '../services/api';
-import { AnalysisRule } from '../types';
+import { analysisRuleAPI, analysisTaskAPI } from '../services/api';
+import { AnalysisRule, AnalysisTask } from '../types';
 import { message } from 'antd';
 
 const Rules: React.FC = () => {
@@ -11,6 +11,7 @@ const Rules: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRule, setEditingRule] = useState<AnalysisRule | null>(null);
   const [evaluating, setEvaluating] = useState(false);
+  const [currentTask, setCurrentTask] = useState<AnalysisTask | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AnalysisRule | null>(null);
   const [formData, setFormData] = useState({
@@ -115,14 +116,29 @@ const Rules: React.FC = () => {
   };
 
   const handleEvaluate = async () => {
+    const enabledRules = rules.filter(r => r.enabled);
+    if (enabledRules.length === 0) {
+      message.warning('请先启用至少一个分析规则');
+      return;
+    }
+
     setEvaluating(true);
     try {
-      const response = await ruleEngineAPI.evaluateRules();
-      message.success(`规则评估完成，匹配到 ${response.data.results.filter((r: any) => r.matched).length} 个结果`);
-      navigate('/analysis-results');
+      // 创建分析任务
+      const createRes = await analysisTaskAPI.createAnalysisTask({
+        task_name: `AI 分析任务 - ${new Date().toLocaleString('zh-CN')}`,
+        rule_ids: enabledRules.map(r => r.id),
+      });
+
+      // 执行分析任务
+      const executeRes = await analysisTaskAPI.executeAnalysisTask(createRes.data.id);
+      message.success(executeRes.data.message);
+
+      // 跳转到任务详情页
+      navigate(`/analysis-tasks/${createRes.data.id}`);
     } catch (error) {
-      message.error('规则评估失败');
-      console.error('规则评估失败:', error);
+      message.error('创建分析任务失败，请检查 AI 配置');
+      console.error('创建分析任务失败:', error);
     } finally {
       setEvaluating(false);
     }

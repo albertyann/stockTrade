@@ -12,15 +12,29 @@ export interface User {
 // 股票信息类型
 export interface Stock {
   id: number;
-  code: string;
+  ts_code?: string;
+  symbol?: string;
   name: string;
-  market: string;
-  industry: string;
-  description: string;
+  area?: string;
+  industry?: string;
+  fullname?: string;
+  enname?: string;
+  cnspell?: string;
+  market?: string;
+  exchange?: string;
+  curr_type?: string;
+  list_status?: string;
+  list_date?: string;
+  delist_date?: string;
+  is_hs?: string;
+  act_name?: string;
+  act_ent_type?: string;
+  description?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   price?: number;
   change?: number;
+  code?: string;
 }
 
 // 用户自选股类型
@@ -145,4 +159,52 @@ export interface AnalysisCondition {
 export interface RuleConditions {
   conditions: AnalysisCondition[];
   logic: 'AND' | 'OR';
+}
+
+// 分析任务类型
+export interface AnalysisTask {
+  id: number;
+  user_id: number;
+  task_name: string;
+  ai_provider: string;
+  ai_generated_script?: string;
+  ai_reasoning?: string;
+  execution_log?: any;
+  matched_stock_ids?: number[];
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  error_message?: string;
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// 系统设置类型
+export interface SystemSetting {
+  id: number;
+  key: string;
+  value: string;
+  value_type: 'string' | 'integer' | 'boolean' | 'json';
+  description?: string;
+  category: 'ai' | 'scheduler' | 'system';
+  is_encrypted: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+// AI 设置类型
+export interface AISettings {
+  provider: string;
+  api_key: string;
+  model: string;
+  temperature: number;
+  max_tokens: number;
+  timeout: number;
+}
+
+// 调度器设置类型
+export interface SchedulerSettings {
+  enabled: boolean;
+  max_workers: number;
+  task_timeout: number;
 }
