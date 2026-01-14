@@ -1,0 +1,30 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from .database import Base, engine
+from .api.v1 import auth, users, stocks, user_stocks, investment_notes, uploaded_files, analysis_rules, analysis_results, sync
+from .core.config import settings
+import os
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="股票深度分析系统API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+os.makedirs(settings.UPLOAD_FOLDER, exist_ok=True)
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(stocks.router, prefix="/api/v1/stocks", tags=["stocks"])
+app.include_router(user_stocks.router, prefix="/api/v1/user-stocks", tags=["user-stocks"])
+app.include_router(investment_notes.router, prefix="/api/v1/investment-notes", tags=["investment-notes"])
+app.include_router(uploaded_files.router, prefix="/api/v1/upload-files", tags=["uploaded-files"])
+app.include_router(analysis_rules.router, prefix="/api/v1/analysis-rules", tags=["analysis-rules"])
+app.include_router(analysis_results.router, prefix="/api/v1/analysis-results", tags=["analysis-results"])
+app.include_router(sync.router, prefix="/api/v1/sync", tags=["sync"])
