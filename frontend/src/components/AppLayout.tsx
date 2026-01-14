@@ -19,7 +19,7 @@ const menuItems = [
   {
     key: '/watchlist',
     icon: '⭐',
-    label: '自选股',
+    label: '自选股票',
   },
   {
     key: '/notes',
@@ -29,7 +29,7 @@ const menuItems = [
   {
     key: '/files',
     icon: '📁',
-    label: '文件管理',
+    label: '资料管理',
   },
   {
     key: '/rules',
@@ -39,7 +39,7 @@ const menuItems = [
   {
     key: '/settings',
     icon: '⚙️',
-    label: '设置',
+    label: '系统设置',
   },
 ];
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult } from '../types';
 
 // API基础配置
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,7 +44,7 @@ api.interceptors.response.use(
 // 用户相关API
 export const userAPI = {
   login: (data: LoginRequest): Promise<{ data: LoginResponse }> => 
-    api.post('/token', new URLSearchParams({
+    api.post('/auth/token', new URLSearchParams({
       grant_type: 'password',
       username: data.username,
       password: data.password,

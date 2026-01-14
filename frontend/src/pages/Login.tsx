@@ -74,9 +74,6 @@ const Login: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 股票分析系统
               </h1>
-              <p className="text-gray-500 text-sm">
-                欢迎回来，请登录您的账户
-              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -162,10 +159,6 @@ const Login: React.FC = () => {
             <div className="flex items-center justify-center gap-4 text-sm">
               <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
                 忘记密码？
-              </a>
-              <span className="text-gray-300">|</span>
-              <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-                立即注册
               </a>
             </div>
           </div>
