@@ -9,6 +9,7 @@ import Notes from './pages/Notes';
 import Files from './pages/Files';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import StockDetail from './pages/StockDetail';
 import AnalysisTaskDetail from './pages/AnalysisTaskDetail';
 import AnalysisTasks from './pages/AnalysisTasks';
@@ -60,6 +61,7 @@ const App: React.FC = () => {
           <Route path="/analysis-tasks" element={<AnalysisTasks />} />
           <Route path="/analysis-tasks/:id" element={<AnalysisTaskDetail />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
               </AppLayout>

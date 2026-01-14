@@ -62,11 +62,6 @@ const StockList: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">股票列表</h2>
-        <p className="text-gray-500">查看和管理所有股票信息</p>
-      </div>
-
       <div className="card p-6 mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">

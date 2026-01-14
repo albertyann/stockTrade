@@ -267,11 +267,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">仪表盘</h2>
-        <p className="text-gray-500">股票数据概览和实时分析</p>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {marketOverview.map((item, index) => (
           <div key={index} className="card p-5 hover:shadow-md transition-shadow">

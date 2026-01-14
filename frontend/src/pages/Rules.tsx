@@ -174,13 +174,6 @@ const Rules: React.FC = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">分析规则</h1>
-        <p className="text-gray-500">配置和管理股票分析规则</p>
-      </div>
-
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="card p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center">

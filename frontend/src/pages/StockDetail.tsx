@@ -118,11 +118,6 @@ const StockDetail: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">股票详情</h2>
-        <p className="text-gray-500">查看股票的详细信息和走势</p>
-      </div>
-
       <div className="flex flex-wrap gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}

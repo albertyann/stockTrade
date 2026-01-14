@@ -81,13 +81,6 @@ const AnalysisTasks: React.FC = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">分析任务</h1>
-        <p className="text-gray-500">查看和管理股票分析任务执行情况</p>
-      </div>
-
-      {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="card p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center">

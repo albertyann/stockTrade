@@ -77,11 +77,6 @@ const Files: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">文件管理</h2>
-        <p className="text-gray-500">管理和上传股票相关文件</p>
-      </div>
-
       <div className="card p-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <button

@@ -89,11 +89,6 @@ const Notes: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">投资笔记</h2>
-        <p className="text-gray-500">记录您的投资思考和策略</p>
-      </div>
-
       <div className="card p-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <button
