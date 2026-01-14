@@ -16,9 +16,10 @@ async def create_stock(
     current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    db_stock = stock_crud.get_stock_by_code(db, code=stock.code)
-    if db_stock:
-        raise HTTPException(status_code=400, detail="Stock code already registered")
+    if stock.ts_code:
+        db_stock = stock_crud.get_stock_by_ts_code(db, ts_code=stock.ts_code)
+        if db_stock:
+            raise HTTPException(status_code=400, detail="Stock ts_code already registered")
     return stock_crud.create_stock(db=db, stock=stock)
 
 

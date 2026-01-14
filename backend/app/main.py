@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
-from .api.v1 import auth, users, stocks, user_stocks, investment_notes, uploaded_files, analysis_rules, analysis_results, sync
+from .api.v1 import auth, users, stocks, user_stocks, investment_notes, uploaded_files, analysis_rules, analysis_results, sync, system_settings, analysis_tasks
 from .core.config import settings
 import os
 
@@ -28,3 +28,5 @@ app.include_router(uploaded_files.router, prefix="/api/v1/upload-files", tags=["
 app.include_router(analysis_rules.router, prefix="/api/v1/analysis-rules", tags=["analysis-rules"])
 app.include_router(analysis_results.router, prefix="/api/v1/analysis-results", tags=["analysis-results"])
 app.include_router(sync.router, prefix="/api/v1/sync", tags=["sync"])
+app.include_router(system_settings.router, prefix="/api/v1/system-settings", tags=["system-settings"])
+app.include_router(analysis_tasks.router, prefix="/api/v1/analysis-tasks", tags=["analysis-tasks"])

@@ -8,8 +8,8 @@ def get_stock(db: Session, stock_id: int) -> Optional[Stock]:
     return db.query(Stock).filter(Stock.id == stock_id).first()
 
 
-def get_stock_by_code(db: Session, code: str) -> Optional[Stock]:
-    return db.query(Stock).filter(Stock.code == code).first()
+def get_stock_by_ts_code(db: Session, ts_code: str) -> Optional[Stock]:
+    return db.query(Stock).filter(Stock.ts_code == ts_code).first()
 
 
 def get_stocks(db: Session, skip: int = 0, limit: int = 100):
@@ -17,7 +17,8 @@ def get_stocks(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_stock(db: Session, stock: StockCreate) -> Stock:
-    db_stock = Stock(**stock.model_dump())
+    stock_data = stock.model_dump()
+    db_stock = Stock(**stock_data)
     db.add(db_stock)
     db.commit()
     db.refresh(db_stock)
@@ -29,7 +30,8 @@ def update_stock(db: Session, stock_id: int, stock: StockUpdate) -> Optional[Sto
     if db_stock:
         update_data = stock.model_dump(exclude_unset=True)
         for key, value in update_data.items():
-            setattr(db_stock, key, value)
+            if value is not None:
+                setattr(db_stock, key, value)
         db.commit()
         db.refresh(db_stock)
     return db_stock

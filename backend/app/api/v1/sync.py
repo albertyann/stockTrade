@@ -39,3 +39,15 @@ async def get_sync_status(
     sync_service = DataSyncService(db)
     status = sync_service.get_sync_status()
     return status
+
+
+@router.post("/all-stocks", response_model=SyncResult)
+async def sync_all_stocks(
+    list_status: str = "L",
+    market: str = None,
+    current_user: UserResponse = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    sync_service = DataSyncService(db)
+    result = sync_service.sync_all_chinese_stocks(list_status=list_status, market=market)
+    return result

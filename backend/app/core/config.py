@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     
     ALPHA_VANTAGE_API_KEY: str = "your-alpha-vantage-api-key"
     FINNHUB_API_KEY: str = "your-finnhub-api-key"
+    TUSHARE_API_TOKEN: str = "your-tushare-api-token"
     
     UPLOAD_FOLDER: str = "./uploads"
     MAX_FILE_SIZE: int = 10485760
