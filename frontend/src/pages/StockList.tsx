@@ -10,12 +10,17 @@ const StockList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
-  const fetchStocks = async () => {
+  const fetchStocks = async (page: number = currentPage) => {
     setLoading(true);
     try {
-      const response = await stockAPI.getStocks({ skip: 0, limit: 100 });
+      const skip = (page - 1) * pageSize;
+      const response = await stockAPI.getStocks({ skip, limit: pageSize });
       setStocks(response.data);
+      setTotal(response.total);
     } catch (error) {
       console.error('获取股票列表失败:', error);
     } finally {
@@ -24,11 +29,12 @@ const StockList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStocks();
-  }, []);
+    fetchStocks(currentPage);
+  }, [currentPage, pageSize]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1);
   };
 
   const handleSyncAllStocks = async () => {
@@ -64,6 +70,15 @@ const StockList: React.FC = () => {
     return code.toLowerCase().includes(searchText.toLowerCase()) ||
       stock.name.toLowerCase().includes(searchText.toLowerCase());
   });
+
+  const totalPages = Math.ceil(total / pageSize);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      fetchStocks(page);
+    }
+  };
 
   const totalStocks = stocks.length;
   const upStocks = stocks.filter(s => s.change && s.change > 0).length;
@@ -120,7 +135,7 @@ const StockList: React.FC = () => {
             </div>
           </form>
           <button
-            onClick={fetchStocks}
+            onClick={() => fetchStocks(currentPage)}
             disabled={loading}
             className="btn-secondary px-6 py-2.5 flex items-center justify-center gap-2"
           >
@@ -248,13 +263,21 @@ const StockList: React.FC = () => {
 
         {filteredStocks.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-            <span>共 {filteredStocks.length} 条</span>
+            <span>共 {total} 条，第 {currentPage} / {totalPages} 页</span>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 上一页
               </button>
-              <span className="px-3 py-1.5">1 / 1</span>
-              <button className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span className="px-3 py-1.5">{currentPage} / {totalPages}</span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 下一页
               </button>
             </div>

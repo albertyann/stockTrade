@@ -8,12 +8,17 @@ const Watchlist: React.FC = () => {
   const [userStocks, setUserStocks] = useState<UserStock[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
-  const fetchUserStocks = async () => {
+  const fetchUserStocks = async (page: number = currentPage) => {
     setLoading(true);
     try {
-      const response = await userStockAPI.getUserStocks();
+      const skip = (page - 1) * pageSize;
+      const response = await userStockAPI.getUserStocks({ skip, limit: pageSize });
       setUserStocks(response.data);
+      setTotal(response.total);
     } catch (error) {
       console.error('获取自选股失败:', error);
     } finally {
@@ -22,8 +27,8 @@ const Watchlist: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUserStocks();
-  }, []);
+    fetchUserStocks(currentPage);
+  }, [currentPage, pageSize]);
 
   const handleAddStock = () => {
     navigate('/stocks');
@@ -32,11 +37,20 @@ const Watchlist: React.FC = () => {
   const handleRemoveStock = async (id: number) => {
     try {
       await userStockAPI.deleteUserStock(id);
-      fetchUserStocks();
+      fetchUserStocks(currentPage);
     } catch (error) {
       console.error('删除失败:', error);
     } finally {
       setDeleteConfirm(null);
+    }
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      fetchUserStocks(page);
     }
   };
 
@@ -54,7 +68,7 @@ const Watchlist: React.FC = () => {
             添加自选股
           </button>
           <button
-            onClick={fetchUserStocks}
+            onClick={() => fetchUserStocks(currentPage)}
             disabled={loading}
             className="btn-secondary px-4 py-2.5 flex items-center gap-2"
           >
@@ -115,7 +129,7 @@ const Watchlist: React.FC = () => {
                 {userStocks.map((userStock) => (
                   <tr key={userStock.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="font-semibold text-gray-900">{userStock.stock.code}</span>
+                      <span className="font-semibold text-gray-900">{userStock.stock.ts_code}</span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-gray-700">
                       {userStock.stock.name}
@@ -180,7 +194,24 @@ const Watchlist: React.FC = () => {
 
         {userStocks.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-            <span>共 {userStocks.length} 只</span>
+            <span>共 {total} 只，第 {currentPage} / {totalPages} 页</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                上一页
+              </button>
+              <span className="px-3 py-1.5">{currentPage} / {totalPages}</span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                下一页
+              </button>
+            </div>
           </div>
         )}
       </div>

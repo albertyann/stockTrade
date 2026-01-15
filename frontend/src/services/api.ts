@@ -66,8 +66,8 @@ export const userAPI = {
 
 // 股票相关API
 export const stockAPI = {
-  getStocks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: Stock[] }> => 
-    api.get('/stocks', { params }),
+  getStocks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: Stock[]; total: number }> => 
+    api.get('/stocks', { params }).then(res => res.data),
   
   getStock: (id: number): Promise<{ data: Stock }> => 
     api.get(`/stocks/${id}`),
@@ -84,8 +84,8 @@ export const stockAPI = {
 
 // 用户自选股相关API
 export const userStockAPI = {
-  getUserStocks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: UserStock[] }> => 
-    api.get('/user-stocks', { params }),
+  getUserStocks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: UserStock[]; total: number }> => 
+    api.get('/user-stocks', { params }).then(res => res.data),
   
   createUserStock: (data: { stock_id: number }): Promise<{ data: UserStock }> => 
     api.post('/user-stocks', data),

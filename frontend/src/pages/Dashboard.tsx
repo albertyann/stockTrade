@@ -11,8 +11,8 @@ const Dashboard: React.FC = () => {
   const fetchUserStocks = async () => {
     setLoading(true);
     try {
-      const response = await userStockAPI.getUserStocks();
-      setUserStocks(response.data);
+      // const response = await userStockAPI.getUserStocks();
+      setUserStocks([]);
     } catch (error) {
       console.error('获取用户自选股失败:', error);
     } finally {
