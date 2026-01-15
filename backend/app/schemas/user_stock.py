@@ -17,6 +17,11 @@ class UserStockResponse(BaseModel):
     stock_id: int
     created_at: datetime
     stock: StockResponse
-    
+
     class Config:
         from_attributes = True
+
+
+class PaginatedUserStocks(BaseModel):
+    data: list[UserStockResponse]
+    total: int

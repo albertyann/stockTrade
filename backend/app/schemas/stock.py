@@ -54,3 +54,8 @@ class StockResponse(StockBase):
     
     class Config:
         from_attributes = True
+
+
+class PaginatedStocks(BaseModel):
+    data: list[StockResponse]
+    total: int

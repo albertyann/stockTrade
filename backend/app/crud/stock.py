@@ -13,7 +13,9 @@ def get_stock_by_ts_code(db: Session, ts_code: str) -> Optional[Stock]:
 
 
 def get_stocks(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Stock).offset(skip).limit(limit).all()
+    total = db.query(Stock).count()
+    stocks = db.query(Stock).offset(skip).limit(limit).all()
+    return {"data": stocks, "total": total}
 
 
 def create_stock(db: Session, stock: StockCreate) -> Stock:

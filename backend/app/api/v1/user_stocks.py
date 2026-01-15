@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from ...database import get_db
-from ...schemas.user_stock import UserStockResponse, UserStockCreate
+from ...schemas.user_stock import UserStockResponse, UserStockCreate, PaginatedUserStocks
 from ...crud import user_stock as user_stock_crud
 from ...core.security import get_current_active_user
 from ...schemas.user import UserResponse
@@ -24,7 +24,7 @@ async def create_user_stock(
     return user_stock_crud.create_user_stock(db=db, user_stock=user_stock, user_id=current_user.id)
 
 
-@router.get("/", response_model=List[UserStockResponse])
+@router.get("/", response_model=PaginatedUserStocks)
 async def read_user_stocks(
     skip: int = 0,
     limit: int = 100,
