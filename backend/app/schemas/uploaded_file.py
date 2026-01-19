@@ -4,7 +4,7 @@ from typing import Optional, List
 
 
 class UploadedFileBase(BaseModel):
-    stock_id: int
+    stock_id: Optional[int]
     file_name: str = Field(..., min_length=1, max_length=200)
     file_type: Optional[str] = Field(None, max_length=50)
     tags: Optional[List[str]]

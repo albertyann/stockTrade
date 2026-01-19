@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import os
 from ...database import get_db
 from ...schemas.uploaded_file import UploadedFileResponse, UploadedFileCreate, UploadedFileUpdate
@@ -12,38 +12,46 @@ from ...core.config import settings
 router = APIRouter()
 
 
-@router.post("/", response_model=UploadedFileResponse)
+@router.post("/", response_model=List[UploadedFileResponse])
 async def create_upload_file(
-    stock_id: int,
+    stock_id: Optional[int] = 0,
     tags: str = None,
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    file_content = await file.read()
-    if len(file_content) > settings.MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="File size exceeds maximum limit")
-    
-    file_path = os.path.join(settings.UPLOAD_FOLDER, file.filename)
-    with open(file_path, "wb") as f:
-        f.write(file_content)
-    
     tag_list = tags.split(",") if tags else []
-    
-    file_data = UploadedFileCreate(
-        stock_id=stock_id,
-        file_name=file.filename,
-        file_type=file.content_type,
-        tags=tag_list
-    )
-    
-    return file_crud.create_uploaded_file(
-        db=db,
-        file=file_data,
-        user_id=current_user.id,
-        file_path=file_path,
-        file_size=len(file_content)
-    )
+    uploaded_files = []
+
+    for file in files:
+        file_content = await file.read()
+        if len(file_content) > settings.MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File '{file.filename}' exceeds maximum size limit"
+            )
+
+        file_path = os.path.join(settings.UPLOAD_FOLDER, file.filename)
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        file_data = UploadedFileCreate(
+            stock_id=stock_id,
+            file_name=file.filename,
+            file_type=file.content_type,
+            tags=tag_list
+        )
+
+        uploaded_file = file_crud.create_uploaded_file(
+            db=db,
+            file=file_data,
+            user_id=current_user.id,
+            file_path=file_path,
+            file_size=len(file_content)
+        )
+        uploaded_files.append(uploaded_file)
+
+    return uploaded_files
 
 
 @router.get("/", response_model=List[UploadedFileResponse])
