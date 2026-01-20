@@ -33,12 +33,16 @@ const Files: React.FC = () => {
   }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFiles = e.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
+
+    Array.from(selectedFiles).forEach(file => {
+      formData.append('files', file);
+    });
+
     if (selectedStockId) {
       formData.append('stock_id', selectedStockId.toString());
     }
@@ -103,34 +107,34 @@ const Files: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="border-b border-slate-200">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   文件名
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   文件类型
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   文件大小
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   股票
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   标签
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   上传时间
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
                     <svg className="animate-spin h-8 w-8 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -140,22 +144,22 @@ const Files: React.FC = () => {
                 </tr>
               ) : files.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
                     暂无文件
                   </td>
                 </tr>
               ) : (
                 files.map((file) => (
-                  <tr key={file.id} className="hover:bg-gray-50">
+                  <tr key={file.id} className="hover:bg-slate-50">
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="font-semibold text-gray-900">{file.file_name}</span>
+                      <span className="font-semibold text-slate-900">{file.file_name}</span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="inline-block px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                      <span className="inline-block px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded">
                         {file.file_type}
                       </span>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                    <td className="px-4 py-4 whitespace-nowrap text-slate-600">
                       {formatFileSize(file.file_size)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -175,13 +179,13 @@ const Files: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex flex-wrap gap-1">
                         {file.tags.map((tag, idx) => (
-                          <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
+                          <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-slate-100 text-slate-700 rounded">
                             {tag}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-gray-600">
+                    <td className="px-4 py-4 whitespace-nowrap text-slate-600">
                       {new Date(file.created_at).toLocaleString('zh-CN')}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -195,7 +199,7 @@ const Files: React.FC = () => {
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(null)}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+                            className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
                           >
                             取消
                           </button>
@@ -266,17 +270,18 @@ const Files: React.FC = () => {
 
                   <div>
                     <label htmlFor="file" className="label">文件</label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary-500 transition-colors">
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:border-primary-500 transition-colors">
                       <div className="space-y-1 text-center">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <svg className="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                           <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <div className="flex text-sm text-gray-600">
+                        <div className="flex text-sm text-slate-600">
                           <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none">
                             <span>选择文件</span>
                             <input
                               id="file-upload"
                               type="file"
+                              multiple
                               className="sr-only"
                               onChange={handleUpload}
                               disabled={uploading}
@@ -284,7 +289,7 @@ const Files: React.FC = () => {
                           </label>
                           <p className="pl-1">或拖拽到此处</p>
                         </div>
-                        <p className="text-xs text-gray-500">支持单个文件上传</p>
+                        <p className="text-xs text-slate-500">支持多文件上传</p>
                       </div>
                     </div>
                   </div>
@@ -295,7 +300,7 @@ const Files: React.FC = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="ml-2 text-sm text-gray-600">上传中...</span>
+                      <span className="ml-2 text-sm text-slate-600">上传中...</span>
                     </div>
                   )}
 

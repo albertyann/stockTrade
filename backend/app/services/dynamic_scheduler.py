@@ -103,11 +103,12 @@ class DynamicScheduler:
         """立即触发任务执行"""
         task_id_str = str(task_id)
         try:
-            job = self.scheduler.get_job(task_id_str)
-            if job:
-                job.modify(next_run_time=datetime.now())
+            if task_id_str in self.task_functions:
+                func = self.task_functions[task_id_str]
+                await func()
+                print(f"Task {task_id} triggered and executed successfully")
             else:
-                raise ValueError(f"Job {task_id} not found")
+                raise ValueError(f"Task function not registered for task_id={task_id}")
         except Exception as e:
             print(f"Error triggering task {task_id}: {e}")
 

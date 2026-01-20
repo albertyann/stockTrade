@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -120,7 +120,7 @@ export const fileAPI = {
   getUploadedFile: (id: number): Promise<{ data: UploadedFile }> => 
     api.get(`/upload-files/${id}`),
   
-  uploadFile: (data: FormData): Promise<{ data: UploadedFile }> => 
+  uploadFile: (data: FormData): Promise<{ data: UploadedFile[] }> =>
     api.post('/upload-files', data, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -241,6 +241,58 @@ export const systemSettingAPI = {
     api.put('/system-settings/scheduler/config', data),
 };
 
+// 同步任务管理相关API
+export const syncTaskAPI = {
+  // 同步接口管理
+  getInterfaces: (): Promise<{ data: SyncInterface[] }> =>
+    api.get('/sync-management/interfaces'),
+
+  getInterface: (id: number): Promise<{ data: SyncInterface }> =>
+    api.get(`/sync-management/interfaces/${id}`),
+
+  createInterface: (data: { interface_name: string; description?: string; interface_params?: Record<string, any>; data_model?: string; enabled?: boolean }): Promise<{ data: SyncInterface }> =>
+    api.post('/sync-management/interfaces', data),
+
+  updateInterface: (id: number, data: Partial<SyncInterface>): Promise<{ data: SyncInterface }> =>
+    api.put(`/sync-management/interfaces/${id}`, data),
+
+  deleteInterface: (id: number): Promise<{ data: { message: string } }> =>
+    api.delete(`/sync-management/interfaces/${id}`),
+
+  // 同步任务管理
+  getTasks: (status?: string): Promise<{ data: SyncTask[] }> =>
+    api.get('/sync-management/tasks', { params: { status } }),
+
+  getTask: (id: number): Promise<{ data: SyncTask }> =>
+    api.get(`/sync-management/tasks/${id}`),
+
+  createTask: (data: { task_name: string; interface_id: number; schedule_type: string; schedule_config: Record<string, any>; task_params?: Record<string, any>; retry_policy?: Record<string, any> }): Promise<{ data: SyncTask }> =>
+    api.post('/sync-management/tasks', data),
+
+  updateTask: (id: number, data: Partial<SyncTask>): Promise<{ data: SyncTask }> =>
+    api.put(`/sync-management/tasks/${id}`, data),
+
+  deleteTask: (id: number): Promise<{ data: { message: string } }> =>
+    api.delete(`/sync-management/tasks/${id}`),
+
+  pauseTask: (id: number): Promise<{ data: { message: string } }> =>
+    api.post(`/sync-management/tasks/${id}/pause`),
+
+  resumeTask: (id: number): Promise<{ data: { message: string } }> =>
+    api.post(`/sync-management/tasks/${id}/resume`),
+
+  triggerTask: (id: number): Promise<{ data: { message: string } }> =>
+    api.post(`/sync-management/tasks/${id}/trigger`),
+
+  // 执行日志
+  getTaskLogs: (taskId: number, skip?: number, limit?: number): Promise<{ data: SyncExecutionLog[] }> =>
+    api.get(`/sync-management/tasks/${taskId}/logs`, { params: { skip, limit } }),
+
+  // 初始化数据
+  initData: (): Promise<{ data: { message: string } }> =>
+    api.post('/sync-management/init-data'),
+};
+
 const apiServices = {
   user: userAPI,
   stock: stockAPI,
@@ -253,6 +305,7 @@ const apiServices = {
   analysisResult: analysisResultAPI,
   analysisTask: analysisTaskAPI,
   systemSetting: systemSettingAPI,
+  syncTask: syncTaskAPI,
 };
 
 export default apiServices;

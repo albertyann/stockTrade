@@ -208,3 +208,48 @@ export interface SchedulerSettings {
   max_workers: number;
   task_timeout: number;
 }
+
+// 同步接口类型
+export interface SyncInterface {
+  id: number;
+  interface_name: string;
+  description?: string;
+  interface_params: Record<string, any>;
+  data_model?: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+// 同步任务类型
+export interface SyncTask {
+  id: number;
+  task_name: string;
+  interface_id: number;
+  interface?: SyncInterface;
+  schedule_type: 'cron' | 'interval' | 'date';
+  schedule_config: Record<string, any>;
+  task_params: Record<string, any>;
+  retry_policy: Record<string, any>;
+  status: 'active' | 'paused' | 'error';
+  last_run_at?: string;
+  next_run_at?: string;
+  last_run_status?: string;
+  last_error_message?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// 同步执行日志类型
+export interface SyncExecutionLog {
+  id: number;
+  task_id: number;
+  execution_type: 'manual' | 'scheduled' | 'retry';
+  started_at: string;
+  finished_at?: string;
+  status: string;
+  records_processed: number;
+  error_message?: string;
+  output_summary: Record<string, any>;
+  created_at: string;
+}

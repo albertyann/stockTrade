@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from ...database import get_db
+from ...database import get_db, SessionLocal
 from ...schemas.sync_management import (
     SyncInterfaceCreate,
     SyncInterfaceUpdate,
@@ -38,6 +38,14 @@ async def startup_event():
     from ...core.config import settings
     scheduler_instance = DynamicScheduler(settings.DATABASE_URL)
     scheduler_instance.start()
+
+    db = SessionLocal()
+    try:
+        from ...services.sync_task_manager import SyncTaskManager
+        manager = SyncTaskManager(db, scheduler_instance)
+        await manager.load_and_schedule_all_tasks()
+    finally:
+        db.close()
 
 
 @router.on_event("shutdown")
@@ -196,3 +204,12 @@ async def get_task_logs(
     db: Session = Depends(get_db)
 ):
     return get_sync_execution_logs(db, task_id=task_id, skip=skip, limit=limit)
+
+@router.post("/init-data")
+async def init_data(
+    db: Session = Depends(get_db)
+):
+    """初始化同步数据（仅用于开发/演示）"""
+    from ...init_sync_data import init_sync_data
+    init_sync_data(db)
+    return {"message": "Sync data initialized successfully"}
