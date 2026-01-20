@@ -53,8 +53,10 @@ class SyncTaskManager:
 
     async def pause_task(self, task_id: int) -> SyncTask:
         """暂停任务"""
-        await self.scheduler.pause_task(task_id)
         task = get_sync_task(self.db, task_id)
+        if not task:
+            raise ValueError(f"Task {task_id} not found in database")
+        await self.scheduler.pause_task(task_id)
         task.status = "paused"
         self.db.commit()
         return task
@@ -62,6 +64,8 @@ class SyncTaskManager:
     async def resume_task(self, task_id: int) -> SyncTask:
         """恢复任务"""
         task = get_sync_task(self.db, task_id)
+        if not task:
+            raise ValueError(f"Task {task_id} not found in database")
         if task.status != "paused":
             raise ValueError(f"Task {task_id} is not paused")
         await self.scheduler.resume_task(task_id)
@@ -71,6 +75,9 @@ class SyncTaskManager:
 
     async def trigger_task_manually(self, task_id: int) -> None:
         """手动触发任务执行"""
+        task = get_sync_task(self.db, task_id)
+        if not task:
+            raise ValueError(f"Task {task_id} not found in database")
         await self.scheduler.trigger_task(task_id)
 
     def _execute_task_wrapper(self, task_id: int):
