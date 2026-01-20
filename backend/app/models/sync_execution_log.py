@@ -3,7 +3,6 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
 
-
 class SyncExecutionLog(Base):
     """同步任务执行日志模型"""
     __tablename__ = "sync_execution_logs"

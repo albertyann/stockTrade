@@ -1,18 +1,20 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from .sync_interface import SyncInterface
-from .sync_task import SyncTask
-from .sync_execution_log import SyncExecutionLog
+from .models.sync_interface import SyncInterface
+from .models.sync_task import SyncTask
+from .models.sync_execution_log import SyncExecutionLog
 
 
 def init_sync_data(db: Session) -> None:
     """初始化同步接口和任务数据"""
 
-    if db.query(SyncInterface).count() > 0:
-        print("Sync interfaces already initialized")
+    if db.query(SyncTask).count() > 0:
+        print("Sync data already initialized")
         return
 
-    interfaces = [
+    existing_interface_names = {i.interface_name for i in db.query(SyncInterface).all()}
+
+    new_interfaces = [
         SyncInterface(
             interface_name='daily',
             description='日线行情数据',
@@ -50,11 +52,16 @@ def init_sync_data(db: Session) -> None:
         ),
     ]
 
-    db.add_all(interfaces)
-    db.commit()
+    interfaces_to_create = [i for i in new_interfaces if i.interface_name not in existing_interface_names]
 
-    for interface in interfaces:
-        print(f"Created interface: {interface.interface_name}")
+    if interfaces_to_create:
+        db.add_all(interfaces_to_create)
+        db.commit()
+
+        for interface in interfaces_to_create:
+            print(f"Created interface: {interface.interface_name}")
+    else:
+        print("Interfaces already exist, skipping interface creation")
 
     now = datetime.now()
     tasks = [

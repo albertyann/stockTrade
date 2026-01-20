@@ -13,8 +13,6 @@ def get_user_stocks_by_user(db: Session, user_id: int, skip: int = 0, limit: int
     total = db.query(UserStock).filter(UserStock.user_id == user_id).count()
     stocks = db.query(UserStock).options(joinedload(UserStock.stock)).filter(UserStock.user_id == user_id).offset(skip).limit(limit).all()
     return {"data": stocks, "total": total}
-    # return db.query(UserStock).options(joinedload(UserStock.stock)).filter(UserStock.user_id == user_id).offset(skip).limit(limit).all()
-
 
 def get_user_stock_by_user_and_stock(db: Session, user_id: int, stock_id: int) -> Optional[UserStock]:
     return db.query(UserStock).filter(

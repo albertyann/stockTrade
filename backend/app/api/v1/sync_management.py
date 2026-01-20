@@ -19,9 +19,6 @@ from ...crud.sync_management import (
     delete_sync_interface,
     get_sync_task,
     get_sync_tasks,
-    create_sync_task,
-    update_sync_task,
-    delete_sync_task,
     get_sync_execution_logs
 )
 from ...services.sync_task_manager import SyncTaskManager
@@ -148,20 +145,6 @@ async def update_task(
     if not updated_task:
         raise HTTPException(status_code=404, detail="Task not found")
     return updated_task
-
-
-@router.delete("/tasks/{task_id}")
-async def delete_task(
-    task_id: int,
-    db: Session = Depends(get_db),
-    scheduler = Depends(get_scheduler)
-):
-    manager = SyncTaskManager(db, scheduler)
-    success = await manager.delete_and_unschedule_task(task_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return {"message": "Task deleted successfully"}
-
 
 @router.post("/tasks/{task_id}/pause")
 async def pause_task(

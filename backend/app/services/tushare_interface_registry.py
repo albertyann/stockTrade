@@ -17,32 +17,41 @@ class TushareInterfaceRegistry:
 
     async def execute(self, interface_name: str, params: Dict[str, Any]) -> Any:
         """执行指定的 Tushare 接口"""
+        print(f"execute func: {interface_name}, params: {params}")
+
         func = self.interfaces.get(interface_name)
+
         if not func:
             raise ValueError(f"Interface '{interface_name}' not registered")
         
         if asyncio.iscoroutinefunction(func):
+            print(f"run a")
             return await func(self.api, **params)
         else:
+            print(f"run b")
             loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, func, self.api, **params)
+            return await loop.run_in_executor(None, func, self.api, params)
 
     def _register_default_interfaces(self) -> None:
         """注册默认的 Tushare 接口"""
 
-        def fetch_daily(api, ts_code: str = "", trade_date: str = "",
-                      start_date: str = "", end_date: str = ""):
+        def fetch_daily(api, params: Dict[str, Any]):
+            print(f"fetch daily....")
+
             if not api.pro:
                 return None
-            params = {}
-            if ts_code:
-                params["ts_code"] = ts_code
-            if trade_date:
-                params["trade_date"] = trade_date
-            if start_date:
-                params["start_date"] = start_date
-            if end_date:
-                params["end_date"] = end_date
+            # params = {}
+            # if ts_code:
+            #     params["ts_code"] = ts_code
+            # if trade_date:
+            #     params["trade_date"] = trade_date
+            # if start_date:
+            #     params["start_date"] = start_date
+            # if end_date:
+            #     params["end_date"] = end_date
+ 
+            print(f"daily params {params}")
+
             df = api.pro.daily(**params)
             return df.to_dict(orient="records") if df is not None and not df.empty else []
 

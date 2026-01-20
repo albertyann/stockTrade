@@ -110,6 +110,8 @@ class DynamicScheduler:
             else:
                 raise ValueError(f"Task function not registered for task_id={task_id}")
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"Error triggering task {task_id}: {e}")
 
     def get_job_info(self, task_id: int) -> Optional[Dict[str, Any]]:

@@ -72,6 +72,9 @@ class SyncTaskResponse(SyncTaskBase):
 class SyncExecutionLogBase(BaseModel):
     task_id: int
     execution_type: str = Field(..., pattern="^(manual|scheduled|retry)$")
+    status: str = Field(..., pattern="^(success|failed|running)$")
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
     records_processed: int = 0
     error_message: Optional[str] = None
     output_summary: Optional[Dict[str, Any]] = Field(default_factory=dict)

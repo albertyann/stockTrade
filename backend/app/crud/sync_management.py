@@ -25,7 +25,7 @@ def get_sync_interfaces(db: Session, skip: int = 0, limit: int = 100) -> List[Sy
 
 
 def create_sync_interface(db: Session, interface: SyncInterfaceCreate) -> SyncInterface:
-    db_interface = SyncInterface(**interface.dict())
+    db_interface = SyncInterface(**interface.model_dump())
     db.add(db_interface)
     db.commit()
     db.refresh(db_interface)
@@ -37,7 +37,7 @@ def update_sync_interface(db: Session, interface_id: int, interface: SyncInterfa
     if not db_interface:
         return None
 
-    update_data = interface.dict(exclude_unset=True)
+    update_data = interface.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_interface, key, value)
 
@@ -68,7 +68,7 @@ def get_sync_tasks(db: Session, skip: int = 0, limit: int = 100, status: Optiona
 
 
 def create_sync_task(db: Session, task: SyncTaskCreate) -> SyncTask:
-    db_task = SyncTask(**task.dict())
+    db_task = SyncTask(**task.model_dump())
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -80,7 +80,7 @@ def update_sync_task(db: Session, task_id: int, task: SyncTaskUpdate) -> Optiona
     if not db_task:
         return None
 
-    update_data = task.dict(exclude_unset=True)
+    update_data = task.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_task, key, value)
 
@@ -111,7 +111,8 @@ def get_sync_execution_logs(db: Session, task_id: Optional[int] = None, skip: in
 
 
 def create_sync_execution_log(db: Session, log: SyncExecutionLogCreate) -> SyncExecutionLog:
-    db_log = SyncExecutionLog(**log.dict())
+    db_log = SyncExecutionLog(**log)
+    print(db_log)
     db.add(db_log)
     db.commit()
     db.refresh(db_log)

@@ -9,8 +9,7 @@ from ..crud.sync_management import (
     update_sync_task,
     delete_sync_task,
     get_sync_task,
-    create_sync_execution_log,
-    update_sync_execution_log
+    create_sync_execution_log
 )
 from ..services.tushare_interface_registry import TushareInterfaceRegistry
 from ..services.dynamic_scheduler import DynamicScheduler
@@ -66,7 +65,7 @@ class SyncTaskManager:
         task = get_sync_task(self.db, task_id)
         if not task:
             raise ValueError(f"Task {task_id} not found in database")
-        if task.status != "paused":
+        if task.status != "paused" and task.status != "error":
             raise ValueError(f"Task {task_id} is not paused")
         await self.scheduler.resume_task(task_id)
         task.status = "active"
@@ -78,22 +77,29 @@ class SyncTaskManager:
         task = get_sync_task(self.db, task_id)
         if not task:
             raise ValueError(f"Task {task_id} not found in database")
+
+        task_id_str = str(task_id)
+        if task_id_str not in self.scheduler.task_functions:
+            print(f"Task function not registered, registering now...")
+            self.scheduler.register_task_function(task_id_str, self._execute_task_wrapper(task_id, execution_type="manual"))
+
         await self.scheduler.trigger_task(task_id)
 
-    def _execute_task_wrapper(self, task_id: int):
+    def _execute_task_wrapper(self, task_id: int, execution_type: str = "scheduled"):
         """包装任务执行函数供调度器调用"""
         async def wrapper():
             from ..database import SessionLocal
             db = SessionLocal()
             try:
-                await self._execute_task(db, task_id)
+                await self._execute_task(db, task_id, execution_type=execution_type)
             finally:
                 db.close()
         return wrapper
 
-    async def _execute_task(self, db: Session, task_id: int) -> None:
+    async def _execute_task(self, db: Session, task_id: int, execution_type: str = "scheduled") -> None:
         """执行同步任务的核心逻辑"""
         task = db.query(SyncTask).filter(SyncTask.id == task_id).first()
+        
         if not task:
             print(f"Task {task_id} not found")
             return
@@ -114,7 +120,7 @@ class SyncTaskManager:
             db,
             {
                 "task_id": task_id,
-                "execution_type": "scheduled",
+                "execution_type": execution_type,
                 "status": "running"
             }
         )
@@ -123,11 +129,13 @@ class SyncTaskManager:
             task.last_run_status = "running"
             db.commit()
 
-            merged_params = {**interface.interface_params, **task.task_params}
+            merged_params = {**interface.interface_params, **{"ts_code":"000001.SZ", "start_date":"20180701", "end_date":"20180718"}}
+            print(f"merged_params {merged_params}")
             data = await self.tushare_registry.execute(
                 interface.interface_name,
                 merged_params
             )
+            print(f"data {data}")
 
             self._save_synced_data(db, interface, data)
 
@@ -170,11 +178,20 @@ class SyncTaskManager:
     def _save_daily_data(self, db: Session, data: list) -> None:
         """保存日线数据"""
         from ..models.stock_daily import StockDaily
+        from datetime import datetime
 
         for item in data:
             ts_code = item.get("ts_code")
-            trade_date = item.get("trade_date")
-            if not ts_code or not trade_date:
+            trade_date_str = item.get("trade_date")
+            if not ts_code or not trade_date_str:
+                continue
+
+            # Convert string date (YYYYMMDD) to datetime.date object
+            try:
+                trade_date = datetime.strptime(str(trade_date_str), "%Y%m%d").date()
+                item["trade_date"] = trade_date
+            except (ValueError, TypeError) as e:
+                print(f"Invalid trade_date format: {trade_date_str}, error: {e}")
                 continue
 
             existing = db.query(StockDaily).filter(
@@ -194,11 +211,20 @@ class SyncTaskManager:
     def _save_daily_basic_data(self, db: Session, data: list) -> None:
         """保存每日指标数据"""
         from ..models.stock_daily_basic import StockDailyBasic
+        from datetime import datetime
 
         for item in data:
             ts_code = item.get("ts_code")
-            trade_date = item.get("trade_date")
-            if not ts_code or not trade_date:
+            trade_date_str = item.get("trade_date")
+            if not ts_code or not trade_date_str:
+                continue
+
+            # Convert string date (YYYYMMDD) to datetime.date object
+            try:
+                trade_date = datetime.strptime(str(trade_date_str), "%Y%m%d").date()
+                item["trade_date"] = trade_date
+            except (ValueError, TypeError) as e:
+                print(f"Invalid trade_date format: {trade_date_str}, error: {e}")
                 continue
 
             existing = db.query(StockDailyBasic).filter(
@@ -218,11 +244,20 @@ class SyncTaskManager:
     def _save_moneyflow_data(self, db: Session, data: list) -> None:
         """保存资金流向数据"""
         from ..models.stock_moneyflow import StockMoneyflow
+        from datetime import datetime
 
         for item in data:
             ts_code = item.get("ts_code")
-            trade_date = item.get("trade_date")
-            if not ts_code or not trade_date:
+            trade_date_str = item.get("trade_date")
+            if not ts_code or not trade_date_str:
+                continue
+
+            # Convert string date (YYYYMMDD) to datetime.date object
+            try:
+                trade_date = datetime.strptime(str(trade_date_str), "%Y%m%d").date()
+                item["trade_date"] = trade_date
+            except (ValueError, TypeError) as e:
+                print(f"Invalid trade_date format: {trade_date_str}, error: {e}")
                 continue
 
             existing = db.query(StockMoneyflow).filter(
