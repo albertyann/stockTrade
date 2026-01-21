@@ -1,11 +1,16 @@
 from sqlalchemy.orm import Session
 from ..models.stock import Stock
 from ..models.user_stock import UserStock
+from ..models.stock_daily import StockDaily
 from .tushare_api import TushareAPI
 from .alpha_vantage_api import AlphaVantageAPI
 from datetime import datetime
 from typing import List, Dict, Any
 from dateutil.parser import parse as parse_date
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class DataSyncService:
@@ -55,16 +60,24 @@ class DataSyncService:
         """
         同步股票基础信息 - 使用Tushare API
         """
+        logger.info(f"[基础信息] 开始同步股票: {ts_code}")
+
         if self.tushare_api.is_available():
             stock_data = self.tushare_api.get_stock_by_code(ts_code)
             if stock_data:
                 self._save_stock_data(stock_data)
+                logger.info(f"[基础信息] 从 Tushare 更新股票: {ts_code}")
+            else:
+                logger.warning(f"[基础信息] Tushare 未找到股票: {ts_code}")
         else:
-            print("Tushare API not available, using Alpha Vantage")
+            logger.info("[基础信息] Tushare API 不可用，使用 Alpha Vantage")
             quote_data = self.alpha_vantage_api.get_quote_endpoint(ts_code)
             if quote_data and "Global Quote" in quote_data:
                 quote = quote_data["Global Quote"]
                 self._save_stock_data_from_alpha_vantage(ts_code, quote)
+                logger.info(f"[基础信息] 从 Alpha Vantage 更新股票: {ts_code}")
+            else:
+                logger.warning(f"[基础信息] Alpha Vantage 未找到股票: {ts_code}")
                 
     def _save_stock_data(self, stock_data: Dict[str, Any]):
         """
@@ -131,10 +144,73 @@ class DataSyncService:
         """
         同步股票交易数据
         """
+        logger.info(f"========== 开始同步股票 {stock_code} 的日线数据 ==========")
+        logger.info(f"同步时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
         daily_data = self.alpha_vantage_api.get_daily_data(stock_code)
         if daily_data and "Time Series (Daily)" in daily_data:
             time_series = daily_data["Time Series (Daily)"]
-            print(f"同步股票 {stock_code} 的交易数据，共 {len(time_series)} 条")
+            dates = sorted(time_series.keys())
+            logger.info(f"从 Alpha Vantage 获取到 {len(time_series)} 条交易数据")
+            logger.info(f"数据范围: {dates[-1]} 至 {dates[0]} (最新至最旧)")
+
+            new_count = 0
+            update_count = 0
+            error_count = 0
+
+            for trade_date_str, data in time_series.items():
+                try:
+                    trade_date = parse_date(trade_date_str).date()
+                    open_price = float(data.get("1. open", 0))
+                    high_price = float(data.get("2. high", 0))
+                    low_price = float(data.get("3. low", 0))
+                    close_price = float(data.get("4. close", 0))
+                    volume = float(data.get("5. volume", 0))
+
+                    existing = self.db.query(StockDaily).filter(
+                        StockDaily.ts_code == stock_code,
+                        StockDaily.trade_date == trade_date
+                    ).first()
+
+                    if existing:
+                        existing.open = open_price
+                        existing.high = high_price
+                        existing.low = low_price
+                        existing.close = close_price
+                        existing.vol = volume
+                        update_count += 1
+                    else:
+                        stock_daily = StockDaily(
+                            ts_code=stock_code,
+                            trade_date=trade_date,
+                            open=open_price,
+                            high=high_price,
+                            low=low_price,
+                            close=close_price,
+                            vol=volume
+                        )
+                        self.db.add(stock_daily)
+                        new_count += 1
+
+                except Exception as e:
+                    error_count += 1
+                    logger.error(f"保存股票 {stock_code} 在 {trade_date_str} 的数据失败: {str(e)}")
+                    continue
+
+            logger.info(f"处理完成: 新增 {new_count} 条, 更新 {update_count} 条, 失败 {error_count} 条")
+
+            try:
+                self.db.commit()
+                logger.info(f"✓ 股票 {stock_code} 的交易数据保存成功")
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"✗ 提交股票 {stock_code} 的交易数据失败: {str(e)}")
+                raise
+        else:
+            logger.warning(f"股票 {stock_code} 未获取到有效数据")
+            logger.info(f"API响应: {daily_data if daily_data else '无响应'}")
+
+        logger.info(f"========== 股票 {stock_code} 同步完成 ==========")
             
     def sync_financial_data(self, stock_code: str):
         """
@@ -221,18 +297,21 @@ class DataSyncService:
             UserStock.user_id == user_id,
             UserStock.stock_id == stock_id
         ).first()
-        
+
         if user_stock:
             stock = self.db.query(Stock).filter(Stock.id == user_stock.stock_id).first()
             if stock:
-                try:
-                    ts_code = getattr(stock, 'ts_code', None) or getattr(stock, 'symbol', None)
-                    if ts_code:
+                ts_code = getattr(stock, 'ts_code', None) or getattr(stock, 'symbol', None)
+                stock_name = getattr(stock, 'name', 'unknown')
+                if ts_code:
+                    logger.info(f"[用户 {user_id}] 开始同步股票: {ts_code} ({stock_name})")
+                    try:
                         self.sync_stock_basic_info(ts_code)
                         self.sync_stock_trading_data(ts_code)
-                        print(f"成功同步用户 {user_id} 股票 {ts_code} 的数据")
-                except Exception as e:
-                    print(f"同步用户 {user_id} 股票 {getattr(stock, 'symbol', 'unknown')} 的数据失败: {str(e)}")
+                        logger.info(f"[用户 {user_id}] ✓ 股票 {ts_code} 同步成功")
+                    except Exception as e:
+                        logger.error(f"[用户 {user_id}] ✗ 股票 {ts_code} 同步失败: {str(e)}")
+                        raise
                     
     def sync_financial_data_for_user(self, user_id: int, stock_id: int):
         """

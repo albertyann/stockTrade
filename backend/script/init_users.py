@@ -1,8 +1,10 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app.database import SessionLocal
 from app.crud.user import create_user, get_user_by_username
 from app.schemas.user import UserCreate
-import sys
-
 
 def create_admin_user():
     db = SessionLocal()

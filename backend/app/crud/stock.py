@@ -12,9 +12,19 @@ def get_stock_by_ts_code(db: Session, ts_code: str) -> Optional[Stock]:
     return db.query(Stock).filter(Stock.ts_code == ts_code).first()
 
 
-def get_stocks(db: Session, skip: int = 0, limit: int = 100):
-    total = db.query(Stock).count()
-    stocks = db.query(Stock).offset(skip).limit(limit).all()
+def get_stocks(db: Session, skip: int = 0, limit: int = 100, search: str = None):
+    query = db.query(Stock)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (Stock.ts_code.ilike(search_pattern)) |
+            (Stock.symbol.ilike(search_pattern)) |
+            (Stock.name.ilike(search_pattern))
+        )
+
+    total = query.count()
+    stocks = query.offset(skip).limit(limit).all()
     return {"data": stocks, "total": total}
 
 

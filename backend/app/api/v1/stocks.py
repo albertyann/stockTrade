@@ -27,10 +27,11 @@ async def create_stock(
 async def read_stocks(
     skip: int = 0,
     limit: int = 100,
+    search: str = None,
     current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    result = stock_crud.get_stocks(db, skip=skip, limit=limit)
+    result = stock_crud.get_stocks(db, skip=skip, limit=limit, search=search)
     return result
 
 

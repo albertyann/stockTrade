@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
 from .api.v1 import auth, users, stocks, user_stocks, investment_notes, uploaded_files, analysis_rules, analysis_results, sync, system_settings, analysis_tasks, sync_management
 from .core.config import settings
+from .services.data_sync_scheduler import run_scheduler
 import os
+import threading
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,3 +33,10 @@ app.include_router(sync.router, prefix="/api/v1/sync", tags=["sync"])
 app.include_router(sync_management.router, prefix="/api/v1/sync-management", tags=["sync-management"])
 app.include_router(system_settings.router, prefix="/api/v1/system-settings", tags=["system-settings"])
 app.include_router(analysis_tasks.router, prefix="/api/v1/analysis-tasks", tags=["analysis-tasks"])
+
+
+@app.on_event("startup")
+def startup_event():
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
+    print("Data sync scheduler started")

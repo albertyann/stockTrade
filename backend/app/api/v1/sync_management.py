@@ -196,3 +196,25 @@ async def init_data(
     from ...init_sync_data import init_sync_data
     init_sync_data(db)
     return {"message": "Sync data initialized successfully"}
+
+
+@router.post("/sync-index-basic")
+async def sync_index_basic(
+    db: Session = Depends(get_db),
+    scheduler = Depends(get_scheduler)
+):
+    """手动触发同步指数基本信息"""
+    from ...services.sync_task_manager import SyncTaskManager
+
+    manager = SyncTaskManager(db, scheduler)
+
+    try:
+        data = await manager.tushare_registry.execute("index_basic", {})
+
+        if not data or (isinstance(data, list) and len(data) == 0):
+            return {"success": False, "message": "未获取到指数数据"}
+
+        manager._save_index_basic_data(db, data)
+        return {"success": True, "message": f"成功同步 {len(data) if isinstance(data, list) else 1} 条指数数据"}
+    except Exception as e:
+        return {"success": False, "message": f"同步失败: {str(e)}"}
