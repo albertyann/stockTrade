@@ -1,7 +1,12 @@
 import asyncio
 import logging
-from typing import Dict, Any, Callable, Optional
-from .tushare_api import TushareAPI
+from typing import Dict, Any, Optional
+from ..core.config import settings
+from .data_sources import (
+    InterfaceRegistry,
+    TushareAdapter,
+    register_tushare_interfaces,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,197 +16,45 @@ class TushareInterfaceRegistry:
     """Tushare 接口注册表 - 管理所有支持的 Tushare API 接口"""
 
     def __init__(self, api_token: Optional[str] = None):
-        self.api = TushareAPI(api_token)  # type: ignore[arg-type]
-        self.interfaces: Dict[str, Callable] = {}
+        token = api_token or settings.TUSHARE_API_TOKEN
+        self.adapter = TushareAdapter(token)
+        self.registry = InterfaceRegistry()
         logger.info("Initializing TushareInterfaceRegistry")
-        self._register_default_interfaces()
-        logger.info(f"Registered {len(self.interfaces)} default interfaces: {list(self.interfaces.keys())}")
 
-    def register(self, name: str, func: Callable) -> None:
-        """注册一个新的 Tushare 接口"""
-        self.interfaces[name] = func
-        logger.debug(f"Registered interface: {name}")
+        register_tushare_interfaces(self.registry, self.adapter)
+        logger.info(f"Registered {len(self.registry.list())} interfaces: {self.registry.list()}")
 
     async def execute(self, interface_name: str, params: Dict[str, Any]) -> Any:
         """执行指定的 Tushare 接口"""
         logger.info(f"Executing interface: {interface_name}, params: {params}")
 
-        func = self.interfaces.get(interface_name)
-
-        if not func:
+        interface_data = self.registry.get(interface_name)
+        if not interface_data:
             logger.error(f"Interface '{interface_name}' not registered")
             raise ValueError(f"Interface '{interface_name}' not registered")
 
-        if asyncio.iscoroutinefunction(func):
-            logger.debug(f"Executing async function for interface: {interface_name}")
-            result = await func(self.api, **params)
-            logger.debug(f"Async function completed for interface: {interface_name}")
+        executor = interface_data["executor"]
+        config = interface_data["config"]
+
+        logger.debug(f"Executing interface from data source: {config.data_source}")
+
+        import inspect
+        call_method = getattr(executor, '__call__', None)
+
+        if asyncio.iscoroutinefunction(executor) or (call_method and asyncio.iscoroutinefunction(call_method)):
+            logger.debug(f"Executing async executor for interface: {interface_name}")
+            result = await executor(**params)
+            logger.debug(f"Async executor completed for interface: {interface_name}")
             return result
         else:
-            logger.debug(f"Executing sync function for interface: {interface_name}")
+            logger.debug(f"Executing sync executor for interface: {interface_name}")
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, func, self.api, params)
-            logger.debug(f"Sync function completed for interface: {interface_name}")
+            result = await loop.run_in_executor(None, lambda: executor(**params))
+            logger.debug(f"Sync executor completed for interface: {interface_name}")
             return result
-
-    def _register_default_interfaces(self) -> None:
-        """注册默认的 Tushare 接口"""
-
-        def fetch_daily(api, params: Dict[str, Any]):
-            logger.info(f"Fetching daily data with params: {params}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            logger.debug(f"Calling Tushare daily API with params: {params}")
-            df = api.pro.daily(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} daily records")
-            return result
-
-        def fetch_daily_basic(api, ts_code: str = "", trade_date: str = "",
-                            start_date: str = "", end_date: str = ""):
-            logger.debug(f"Fetching daily_basic data: ts_code={ts_code}, trade_date={trade_date}, start_date={start_date}, end_date={end_date}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            params = {}
-            if ts_code:
-                params["ts_code"] = ts_code
-            if trade_date:
-                params["trade_date"] = trade_date
-            if start_date:
-                params["start_date"] = start_date
-            if end_date:
-                params["end_date"] = end_date
-
-            logger.debug(f"Calling Tushare daily_basic API with params: {params}")
-            df = api.pro.daily_basic(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} daily_basic records")
-            return result
-
-        def fetch_moneyflow(api, ts_code: str = "", trade_date: str = "",
-                          start_date: str = "", end_date: str = ""):
-            logger.debug(f"Fetching moneyflow data: ts_code={ts_code}, trade_date={trade_date}, start_date={start_date}, end_date={end_date}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            params = {}
-            if ts_code:
-                params["ts_code"] = ts_code
-            if trade_date:
-                params["trade_date"] = trade_date
-            if start_date:
-                params["start_date"] = start_date
-            if end_date:
-                params["end_date"] = end_date
-
-            logger.debug(f"Calling Tushare moneyflow API with params: {params}")
-            df = api.pro.moneyflow(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} moneyflow records")
-            return result
-
-        def fetch_moneyflow_hsgt(api, ts_code: str = "", start_date: str = "",
-                                 end_date: str = ""):
-            logger.debug(f"Fetching moneyflow_hsgt data: ts_code={ts_code}, start_date={start_date}, end_date={end_date}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            params = {}
-            if ts_code:
-                params["ts_code"] = ts_code
-            if start_date:
-                params["start_date"] = start_date
-            if end_date:
-                params["end_date"] = end_date
-
-            logger.debug(f"Calling Tushare moneyflow_hsgt API with params: {params}")
-            df = api.pro.moneyflow_hsgt(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} moneyflow_hsgt records")
-            return result
-
-        def fetch_top_list(api, trade_date: str = ""):
-            logger.debug(f"Fetching top_list data: trade_date={trade_date}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            params = {}
-            if trade_date:
-                params["trade_date"] = trade_date
-
-            logger.debug(f"Calling Tushare top_list API with params: {params}")
-            df = api.pro.top_list(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} top_list records")
-            return result
-
-        def fetch_index_basic(api, params: Dict[str, Any]):
-            logger.debug(f"Fetching index_basic data with params: {params}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            logger.debug(f"Calling Tushare index_basic API with params: {params}")
-            df = api.pro.index_basic(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} index_basic records")
-            return result
-
-        def fetch_index_daily(api, params: Dict[str, Any]):
-            logger.debug(f"Fetching index_daily data with params: {params}")
-
-            if not api.pro:
-                logger.warning("Tushare API pro interface not available")
-                return None
-
-            ts_code = params.get("ts_code", "")
-            if ts_code and "," in ts_code:
-                ts_codes = [code.strip() for code in ts_code.split(",") if code.strip()]
-                logger.info(f"Detected multiple ts_codes ({len(ts_codes)}), will loop call for each")
-
-                all_results = []
-                for idx, code in enumerate(ts_codes, 1):
-                    logger.debug(f"Fetching index_daily for {code} ({idx}/{len(ts_codes)})")
-                    loop_params = params.copy()
-                    loop_params["ts_code"] = code
-                    logger.debug(f"Calling Tushare index_daily API with params: {loop_params}")
-                    df = api.pro.index_daily(**loop_params)
-                    batch_result = df.to_dict(orient="records") if df is not None and not df.empty else []
-                    logger.debug(f"Retrieved {len(batch_result)} records for {code}")
-                    all_results.extend(batch_result)
-
-                logger.info(f"Retrieved total {len(all_results)} index_daily records for {len(ts_codes)} indices")
-                return all_results
-            else:
-                logger.debug(f"Calling Tushare index_daily API with params: {params}")
-                df = api.pro.index_daily(**params)
-                result = df.to_dict(orient="records") if df is not None and not df.empty else []
-                logger.info(f"Retrieved {len(result)} index_daily records")
-                return result
-
-        self.register("daily", fetch_daily)
-        self.register("daily_basic", fetch_daily_basic)
-        self.register("moneyflow", fetch_moneyflow)
-        self.register("moneyflow_hsgt", fetch_moneyflow_hsgt)
-        self.register("top_list", fetch_top_list)
-        self.register("index_basic", fetch_index_basic)
-        self.register("index_daily", fetch_index_daily)
 
     def list_interfaces(self) -> list:
         """列出所有已注册的接口"""
-        interfaces = list(self.interfaces.keys())
+        interfaces = self.registry.list()
         logger.debug(f"Listing {len(interfaces)} registered interfaces: {interfaces}")
         return interfaces

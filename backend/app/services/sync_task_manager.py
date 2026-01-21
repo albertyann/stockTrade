@@ -167,6 +167,7 @@ class SyncTaskManager:
 
             merged_params = {**interface.interface_params, **task.task_params}
 
+            index_ts_codes = None
             if interface.interface_name == "index_daily":
                 logger.info(f"[任务执行] index_daily 接口：检查参数")
 
@@ -175,15 +176,14 @@ class SyncTaskManager:
 
                     from ..models.index_basic import IndexBasic
                     indices = db.query(IndexBasic).filter(IndexBasic.category == "综合指数").all()
-                    ts_codes = [idx.ts_code for idx in indices if idx.ts_code]
+                    index_ts_codes = [idx.ts_code for idx in indices if idx.ts_code]
 
-                    if not ts_codes:
+                    if not index_ts_codes:
                         logger.warning(f"[任务执行] index_daily 接口：index_basic 表中无综合指数，跳过同步")
                         return
 
-                    merged_params["ts_code"] = ",".join(ts_codes)
-                    logger.info(f"[任务执行] index_daily 接口：获取到 {len(ts_codes)} 个综合指数代码")
-                    logger.info(f"[任务执行] index_daily 接口：指数代码: {merged_params['ts_code']}")
+                    logger.info(f"[任务执行] index_daily 接口：获取到 {len(index_ts_codes)} 个综合指数代码")
+                    logger.info(f"[任务执行] index_daily 接口：指数代码: {', '.join(index_ts_codes)}")
 
                 current_hour = datetime.now().hour
                 if "trade_date" not in merged_params or not merged_params.get("trade_date"):
@@ -236,12 +236,36 @@ class SyncTaskManager:
                 else:
                     logger.info(f"[任务执行] daily 接口：使用指定日期: {merged_params.get('trade_date')}")
 
-            logger.info(f"[任务执行] 合并参数: {merged_params}")
-            data = await self.tushare_registry.execute(
-                interface.interface_name,
-                merged_params
-            )
-            logger.info(f"[任务执行] 数据获取成功，开始保存...")
+            # Check if we need to loop for index_daily (ts_code doesn't support comma-separated values)
+            if interface.interface_name == "index_daily" and index_ts_codes and len(index_ts_codes) > 1:
+                logger.info(f"[任务执行] index_daily 接口：需要循环获取 {len(index_ts_codes)} 个指数数据")
+                data = []
+
+                for ts_code in index_ts_codes:
+                    loop_params = merged_params.copy()
+                    loop_params["ts_code"] = ts_code
+                    logger.info(f"[任务执行] index_daily 接口：正在获取 {ts_code} 的数据")
+
+                    try:
+                        result = await self.tushare_registry.execute(interface.interface_name, loop_params)
+                        if isinstance(result, list):
+                            data.extend(result)
+                            logger.info(f"[任务执行] index_daily 接口：{ts_code} 获取到 {len(result)} 条数据")
+                        else:
+                            logger.warning(f"[任务执行] index_daily 接口：{ts_code} 返回的数据格式异常")
+                    except Exception as e:
+                        logger.error(f"[任务执行] index_daily 接口：获取 {ts_code} 数据失败: {str(e)}")
+                        continue
+
+                logger.info(f"[任务执行] index_daily 接口：总计获取到 {len(data)} 条数据")
+            else:
+                logger.info(f"[任务执行] 合并参数: {merged_params}")
+                data = await self.tushare_registry.execute(
+                    interface.interface_name,
+                    merged_params
+                )
+                logger.info(f"[任务执行] 数据获取成功，开始保存...")
+
             print(f"[任务执行] 数据获取成功 {data}")
 
             self._save_synced_data(db, interface, data)
