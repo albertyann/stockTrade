@@ -167,11 +167,30 @@ class TushareInterfaceRegistry:
                 logger.warning("Tushare API pro interface not available")
                 return None
 
-            logger.debug(f"Calling Tushare index_daily API with params: {params}")
-            df = api.pro.index_daily(**params)
-            result = df.to_dict(orient="records") if df is not None and not df.empty else []
-            logger.info(f"Retrieved {len(result)} index_daily records")
-            return result
+            ts_code = params.get("ts_code", "")
+            if ts_code and "," in ts_code:
+                ts_codes = [code.strip() for code in ts_code.split(",") if code.strip()]
+                logger.info(f"Detected multiple ts_codes ({len(ts_codes)}), will loop call for each")
+
+                all_results = []
+                for idx, code in enumerate(ts_codes, 1):
+                    logger.debug(f"Fetching index_daily for {code} ({idx}/{len(ts_codes)})")
+                    loop_params = params.copy()
+                    loop_params["ts_code"] = code
+                    logger.debug(f"Calling Tushare index_daily API with params: {loop_params}")
+                    df = api.pro.index_daily(**loop_params)
+                    batch_result = df.to_dict(orient="records") if df is not None and not df.empty else []
+                    logger.debug(f"Retrieved {len(batch_result)} records for {code}")
+                    all_results.extend(batch_result)
+
+                logger.info(f"Retrieved total {len(all_results)} index_daily records for {len(ts_codes)} indices")
+                return all_results
+            else:
+                logger.debug(f"Calling Tushare index_daily API with params: {params}")
+                df = api.pro.index_daily(**params)
+                result = df.to_dict(orient="records") if df is not None and not df.empty else []
+                logger.info(f"Retrieved {len(result)} index_daily records")
+                return result
 
         self.register("daily", fetch_daily)
         self.register("daily_basic", fetch_daily_basic)
