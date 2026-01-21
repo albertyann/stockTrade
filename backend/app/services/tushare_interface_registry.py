@@ -86,8 +86,12 @@ class TushareInterfaceRegistry:
 
         def fetch_moneyflow(api, ts_code: str = "", trade_date: str = "",
                           start_date: str = "", end_date: str = ""):
+            logger.debug(f"Fetching moneyflow data: ts_code={ts_code}, trade_date={trade_date}, start_date={start_date}, end_date={end_date}")
+
             if not api.pro:
+                logger.warning("Tushare API pro interface not available")
                 return None
+
             params = {}
             if ts_code:
                 params["ts_code"] = ts_code
@@ -97,13 +101,21 @@ class TushareInterfaceRegistry:
                 params["start_date"] = start_date
             if end_date:
                 params["end_date"] = end_date
+
+            logger.debug(f"Calling Tushare moneyflow API with params: {params}")
             df = api.pro.moneyflow(**params)
-            return df.to_dict(orient="records") if df is not None and not df.empty else []
+            result = df.to_dict(orient="records") if df is not None and not df.empty else []
+            logger.info(f"Retrieved {len(result)} moneyflow records")
+            return result
 
         def fetch_moneyflow_hsgt(api, ts_code: str = "", start_date: str = "",
                                  end_date: str = ""):
+            logger.debug(f"Fetching moneyflow_hsgt data: ts_code={ts_code}, start_date={start_date}, end_date={end_date}")
+
             if not api.pro:
+                logger.warning("Tushare API pro interface not available")
                 return None
+
             params = {}
             if ts_code:
                 params["ts_code"] = ts_code
@@ -111,29 +123,55 @@ class TushareInterfaceRegistry:
                 params["start_date"] = start_date
             if end_date:
                 params["end_date"] = end_date
+
+            logger.debug(f"Calling Tushare moneyflow_hsgt API with params: {params}")
             df = api.pro.moneyflow_hsgt(**params)
-            return df.to_dict(orient="records") if df is not None and not df.empty else []
+            result = df.to_dict(orient="records") if df is not None and not df.empty else []
+            logger.info(f"Retrieved {len(result)} moneyflow_hsgt records")
+            return result
 
         def fetch_top_list(api, trade_date: str = ""):
+            logger.debug(f"Fetching top_list data: trade_date={trade_date}")
+
             if not api.pro:
+                logger.warning("Tushare API pro interface not available")
                 return None
+
             params = {}
             if trade_date:
                 params["trade_date"] = trade_date
+
+            logger.debug(f"Calling Tushare top_list API with params: {params}")
             df = api.pro.top_list(**params)
-            return df.to_dict(orient="records") if df is not None and not df.empty else []
+            result = df.to_dict(orient="records") if df is not None and not df.empty else []
+            logger.info(f"Retrieved {len(result)} top_list records")
+            return result
 
         def fetch_index_basic(api, params: Dict[str, Any]):
+            logger.debug(f"Fetching index_basic data with params: {params}")
+
             if not api.pro:
+                logger.warning("Tushare API pro interface not available")
                 return None
+
+            logger.debug(f"Calling Tushare index_basic API with params: {params}")
             df = api.pro.index_basic(**params)
-            return df.to_dict(orient="records") if df is not None and not df.empty else []
+            result = df.to_dict(orient="records") if df is not None and not df.empty else []
+            logger.info(f"Retrieved {len(result)} index_basic records")
+            return result
 
         def fetch_index_daily(api, params: Dict[str, Any]):
+            logger.debug(f"Fetching index_daily data with params: {params}")
+
             if not api.pro:
+                logger.warning("Tushare API pro interface not available")
                 return None
+
+            logger.debug(f"Calling Tushare index_daily API with params: {params}")
             df = api.pro.index_daily(**params)
-            return df.to_dict(orient="records") if df is not None and not df.empty else []
+            result = df.to_dict(orient="records") if df is not None and not df.empty else []
+            logger.info(f"Retrieved {len(result)} index_daily records")
+            return result
 
         self.register("daily", fetch_daily)
         self.register("daily_basic", fetch_daily_basic)
@@ -145,4 +183,6 @@ class TushareInterfaceRegistry:
 
     def list_interfaces(self) -> list:
         """列出所有已注册的接口"""
-        return list(self.interfaces.keys())
+        interfaces = list(self.interfaces.keys())
+        logger.debug(f"Listing {len(interfaces)} registered interfaces: {interfaces}")
+        return interfaces
