@@ -55,8 +55,12 @@ const StockDetail: React.FC = () => {
         message.success('已添加到自选股');
       }
       fetchStock();
-    } catch (error) {
-      message.error(isWatched ? '移除失败' : '添加失败');
+    } catch (error: any) {
+      if (error?.response?.status === 400 && error?.response?.data?.detail) {
+        message.error(error.response.data.detail === 'Stock already in user\'s portfolio' ? '该股票已在自选股中' : error.response.data.detail);
+      } else {
+        message.error(isWatched ? '移除失败' : '添加失败');
+      }
       console.error('操作失败:', error);
     }
   };

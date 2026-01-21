@@ -66,19 +66,19 @@ export const userAPI = {
 
 // 股票相关API
 export const stockAPI = {
-  getStocks: (params: { skip?: number; limit?: number } = {}): Promise<{ data: Stock[]; total: number }> => 
+  getStocks: (params: { skip?: number; limit?: number; search?: string } = {}): Promise<{ data: Stock[]; total: number }> =>
     api.get('/stocks', { params }).then(res => res.data),
-  
-  getStock: (id: number): Promise<{ data: Stock }> => 
+
+  getStock: (id: number): Promise<{ data: Stock }> =>
     api.get(`/stocks/${id}`),
-  
-  createStock: (data: Omit<Stock, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Stock }> => 
+
+  createStock: (data: Omit<Stock, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Stock }> =>
     api.post('/stocks', data),
-  
-  updateStock: (id: number, data: Partial<Stock>): Promise<{ data: Stock }> => 
+
+  updateStock: (id: number, data: Partial<Stock>): Promise<{ data: Stock }> =>
     api.put(`/stocks/${id}`, data),
-  
-  deleteStock: (id: number): Promise<void> => 
+
+  deleteStock: (id: number): Promise<void> =>
     api.delete(`/stocks/${id}`),
 };
 
@@ -154,17 +154,20 @@ export const analysisRuleAPI = {
 
 // 数据同步相关API
 export const syncAPI = {
-  syncStockData: (data: SyncRequest): Promise<{ data: SyncResult }> => 
+  syncStockData: (data: SyncRequest): Promise<{ data: SyncResult }> =>
     api.post('/sync/stocks', data),
-  
-  syncFinancialData: (data: SyncRequest): Promise<{ data: SyncResult }> => 
+
+  syncFinancialData: (data: SyncRequest): Promise<{ data: SyncResult }> =>
     api.post('/sync/financials', data),
-  
-  syncAllStocks: (params?: { list_status?: string; market?: string }): Promise<{ data: SyncResult }> => 
+
+  syncAllStocks: (params?: { list_status?: string; market?: string }): Promise<{ data: SyncResult }> =>
     api.post('/sync/all-stocks', {}, { params }),
-  
-  getSyncStatus: (): Promise<{ data: SyncStatus }> => 
+
+  getSyncStatus: (): Promise<{ data: SyncStatus }> =>
     api.get('/sync/status'),
+
+  syncIndexBasic: (): Promise<{ data: { success: boolean; message: string } }> =>
+    api.post('/sync-management/sync-index-basic'),
 };
 
 // 规则引擎相关API
@@ -291,6 +294,9 @@ export const syncTaskAPI = {
   // 初始化数据
   initData: (): Promise<{ data: { message: string } }> =>
     api.post('/sync-management/init-data'),
+
+  syncIndexBasic: (): Promise<{ data: { success: boolean; message: string } }> =>
+    api.post('/sync-management/sync-index-basic'),
 };
 
 const apiServices = {

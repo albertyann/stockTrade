@@ -9,6 +9,7 @@ const StockList: React.FC = () => {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [syncIndexLoading, setSyncIndexLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
@@ -18,7 +19,7 @@ const StockList: React.FC = () => {
     setLoading(true);
     try {
       const skip = (page - 1) * pageSize;
-      const response = await stockAPI.getStocks({ skip, limit: pageSize });
+      const response = await stockAPI.getStocks({ skip, limit: pageSize, search: searchText });
       setStocks(response.data);
       setTotal(response.total);
     } catch (error) {
@@ -30,11 +31,12 @@ const StockList: React.FC = () => {
 
   useEffect(() => {
     fetchStocks(currentPage);
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchText]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
+    fetchStocks(1);
   };
 
   const handleSyncAllStocks = async () => {
@@ -55,21 +57,36 @@ const StockList: React.FC = () => {
     }
   };
 
+  const handleSyncIndexBasic = async () => {
+    setSyncIndexLoading(true);
+    try {
+      const response = await syncAPI.syncIndexBasic();
+      if (response.data.success) {
+        message.success(response.data.message);
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      message.error('同步指数基础数据失败');
+      console.error('同步失败:', error);
+    } finally {
+      setSyncIndexLoading(false);
+    }
+  };
+
   const handleAddToWatchlist = async (stockId: number) => {
     try {
       await userStockAPI.createUserStock({ stock_id: stockId });
       message.success('已添加到自选股');
-    } catch (error) {
-      message.error('添加自选股失败');
+    } catch (error: any) {
+      if (error?.response?.status === 400 && error?.response?.data?.detail) {
+        message.error(error.response.data.detail === 'Stock already in user\'s portfolio' ? '该股票已在自选股中' : error.response.data.detail);
+      } else {
+        message.error('添加自选股失败');
+      }
       console.error('添加失败:', error);
     }
   };
-
-  const filteredStocks = stocks.filter(stock => {
-    const code = stock.code || stock.ts_code || stock.symbol || '';
-    return code.toLowerCase().includes(searchText.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchText.toLowerCase());
-  });
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -154,6 +171,16 @@ const StockList: React.FC = () => {
             </svg>
             {syncLoading ? '同步中...' : '同步所有股票'}
           </button>
+          <button
+            onClick={handleSyncIndexBasic}
+            disabled={syncIndexLoading}
+            className="btn-primary px-6 py-2.5 flex items-center justify-center gap-2"
+          >
+            <svg className={`w-5 h-5 ${syncIndexLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {syncIndexLoading ? '同步中...' : '同步指数'}
+          </button>
         </div>
 
         <div className="overflow-x-auto">
@@ -194,14 +221,14 @@ const StockList: React.FC = () => {
                     加载中...
                   </td>
                 </tr>
-              ) : filteredStocks.length === 0 ? (
+              ) : stocks.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                     暂无股票数据
                   </td>
                 </tr>
               ) : (
-                filteredStocks.map((stock) => {
+                stocks.map((stock) => {
                   const code = stock.code || stock.ts_code || stock.symbol || '-';
                   return (
                     <tr key={stock.id} className="hover:bg-gray-50">
@@ -261,7 +288,7 @@ const StockList: React.FC = () => {
           </table>
         </div>
 
-        {filteredStocks.length > 0 && (
+        {stocks.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
             <span>共 {total} 条，第 {currentPage} / {totalPages} 页</span>
             <div className="flex items-center gap-2">
