@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { syncTaskAPI } from '../services/api';
 import { SyncTask, SyncExecutionLog } from '../types';
 import { Play, Pause, RefreshCw, Clock, FileText, ChevronDown, ChevronUp, AlertCircle, CheckCircle, Loader2, Database } from 'lucide-react';
@@ -424,7 +424,7 @@ const SyncTasks: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="card p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center">

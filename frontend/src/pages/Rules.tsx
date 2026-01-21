@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analysisRuleAPI, analysisTaskAPI } from '../services/api';
-import { AnalysisRule, AnalysisTask } from '../types';
+import { AnalysisRule } from '../types';
 import { message } from 'antd';
 
 const Rules: React.FC = () => {
@@ -11,7 +11,6 @@ const Rules: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRule, setEditingRule] = useState<AnalysisRule | null>(null);
   const [evaluating, setEvaluating] = useState(false);
-  const [currentTask, setCurrentTask] = useState<AnalysisTask | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AnalysisRule | null>(null);
   const [formData, setFormData] = useState({
@@ -21,7 +20,7 @@ const Rules: React.FC = () => {
     enabled: true,
   });
 
-  const fetchRules = async () => {
+  const fetchRules = useCallback(async () => {
     setLoading(true);
     try {
       const response = await analysisRuleAPI.getAnalysisRules();
@@ -32,11 +31,11 @@ const Rules: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRules();
-  }, []);
+  }, [fetchRules]);
 
   const handleAdd = () => {
     setEditingRule(null);
@@ -62,7 +61,7 @@ const Rules: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       alert('请输入规则名称');
       return;
@@ -173,7 +172,7 @@ const Rules: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="card p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center">

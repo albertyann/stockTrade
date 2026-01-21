@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, IndexOverview } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';

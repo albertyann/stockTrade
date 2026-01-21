@@ -71,7 +71,7 @@ const menuItems = [
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleMenuClick = (key: string) => {
@@ -95,8 +95,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <div className="min-h-screen flex bg-slate-50">
       <aside
         className={`
-          ${collapsed ? 'w-20' : 'w-64'}
-          bg-slate-900 text-white transition-all duration-300 flex flex-col
+          w-64 bg-slate-900 text-white transition-all duration-300 flex flex-col
         `}
       >
         <div className="h-16 flex items-center justify-center border-b border-slate-700">
@@ -133,18 +132,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             ))}
           </ul>
         </nav>
-
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
-          className="mx-3 mb-4 p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
-        >
-          {collapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
-        </button>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">

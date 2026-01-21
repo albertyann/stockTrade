@@ -1,4 +1,4 @@
-import React, { useEffect, useState, FormEvent } from 'react';
+import React, { useEffect, useState, FormEvent, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { stockAPI, syncAPI, userStockAPI } from '../services/api';
@@ -15,7 +15,7 @@ const StockList: React.FC = () => {
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
 
-  const fetchStocks = async (page: number = currentPage) => {
+  const fetchStocks = useCallback(async (page: number = currentPage) => {
     setLoading(true);
     try {
       const skip = (page - 1) * pageSize;
@@ -27,11 +27,11 @@ const StockList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pageSize, searchText, currentPage]);
 
   useEffect(() => {
     fetchStocks(currentPage);
-  }, [currentPage, pageSize, searchText]);
+  }, [currentPage, pageSize, searchText, fetchStocks]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();

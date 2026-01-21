@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import { User } from '../types';
 
-const Settings: React.FC = () => {
+const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -176,4 +176,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings;
+export default Profile;

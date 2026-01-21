@@ -1,6 +1,6 @@
 import React, { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Lock, Mail, Shield, AlertCircle } from 'lucide-react';
+import { TrendingUp, Shield, AlertCircle } from 'lucide-react';
 import { userAPI } from '../services/api';
 
 const Login: React.FC = () => {

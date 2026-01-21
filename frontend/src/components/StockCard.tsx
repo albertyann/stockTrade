@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stock } from '../types';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StockCardProps {
   stock: Stock;

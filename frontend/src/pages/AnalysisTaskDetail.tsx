@@ -37,6 +37,14 @@ const AnalysisTaskDetail: React.FC = () => {
     }
   };
 
+  const startRefresh = () => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+    fetchTask();
+  };
+
   useEffect(() => {
     fetchTask();
 
@@ -51,7 +59,7 @@ const AnalysisTaskDetail: React.FC = () => {
         clearInterval(refreshInterval);
       }
     };
-  }, [id, task?.status]);
+  }, [id, fetchTask, task?.status, refreshInterval]);
 
   useEffect(() => {
     return () => {

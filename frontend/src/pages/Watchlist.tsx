@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userStockAPI } from '../services/api';
 import { UserStock } from '../types';
@@ -12,7 +12,7 @@ const Watchlist: React.FC = () => {
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
 
-  const fetchUserStocks = async (page: number = currentPage) => {
+  const fetchUserStocks = useCallback(async (page: number = currentPage) => {
     setLoading(true);
     try {
       const skip = (page - 1) * pageSize;
@@ -24,11 +24,11 @@ const Watchlist: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pageSize, currentPage]);
 
   useEffect(() => {
     fetchUserStocks(currentPage);
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, fetchUserStocks]);
 
   const handleAddStock = () => {
     navigate('/stocks');

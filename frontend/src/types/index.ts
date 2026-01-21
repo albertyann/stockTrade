@@ -267,11 +267,3 @@ export interface IndexDaily {
   amount: number;
   name?: string;
 }
-
-export interface IndexOverview {
-  ts_code: string;
-  name?: string;
-  close: number;
-  pct_chg: number;
-  trade_date: string;
-}
