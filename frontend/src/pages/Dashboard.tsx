@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import StockCard from '../components/StockCard';
-import { userStockAPI } from '../services/api';
-import { UserStock } from '../types';
+import { userStockAPI, indexAPI } from '../services/api';
+import { UserStock, IndexDaily } from '../types';
 import { RefreshCw, Bell, TrendingUp, TrendingDown, CheckCircle2, XCircle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const [, setUserStocks] = useState<UserStock[]>([]);
+  const [indexData, setIndexData] = useState<IndexDaily[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchUserStocks = async () => {
     setLoading(true);
     try {
-      // const response = await userStockAPI.getUserStocks();
-      setUserStocks([]);
+      const response = await userStockAPI.getUserStocks();
+      setUserStocks(response.data);
     } catch (error) {
       console.error('获取用户自选股失败:', error);
     } finally {
@@ -21,16 +22,29 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const fetchLatestIndexData = async () => {
+    try {
+      const response = await indexAPI.getLatestIndices();
+      console.log(response)
+      setIndexData(response.data);
+    } catch (error) {
+      console.error('获取指数数据失败:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUserStocks();
+    fetchLatestIndexData();
   }, []);
 
-  const marketOverview = [
-    { title: '上证指数', value: '3200.50', change: 1.2, positive: true },
-    { title: '深证成指', value: '11500.80', change: -0.8, positive: false },
-    { title: '创业板指', value: '2450.30', change: 2.5, positive: true },
-    { title: '科创50', value: '1050.20', change: -1.5, positive: false },
-  ];
+  const marketOverview = indexData.map(item => ({
+    title: item.name || item.ts_code,
+    tsCode: item.ts_code,
+    value: item.close?.toFixed(2) || '0.00',
+    change: item.pct_chg || 0,
+    positive: (item.pct_chg || 0) >= 0,
+    tradeDate: item.trade_date,
+  }));
 
   const hotStocks = [
     { code: 'AAPL', name: '苹果公司', price: 150.20, change: 1.8 },
@@ -274,8 +288,12 @@ const Dashboard: React.FC = () => {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-sm text-slate-500 mb-1">{item.title}</p>
+                <p className="text-xs text-slate-400 mb-1">{item.tsCode}</p>
                 <p className="text-2xl font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
-                  {parseFloat(item.value).toFixed(2)}
+                  {item.value}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  日期: {item.tradeDate}
                 </p>
               </div>
               <span className={`
@@ -283,55 +301,11 @@ const Dashboard: React.FC = () => {
                 ${item.positive ? 'bg-success-50 text-success-700' : 'bg-danger-50 text-danger-700'}
               `}>
                 {item.positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(item.change).toFixed(1)}%
+                {Math.abs(item.change).toFixed(2)}%
               </span>
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="card p-6 mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">股票价格走势</h3>
-            <p className="text-sm text-slate-500">实时追踪主要股票价格变化</p>
-          </div>
-          <button
-            onClick={fetchUserStocks}
-            disabled={loading}
-            className="btn-primary px-4 py-2 flex items-center gap-2 hover:shadow-lg hover:shadow-primary-500/25 transition-shadow"
-            aria-label="刷新数据"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            刷新数据
-          </button>
-        </div>
-        <ReactECharts option={chartOption} style={{ height: 400 }} />
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">热门股票</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {hotStocks.map((stock, index) => (
-            <div key={index}>
-              <StockCard
-                stock={{
-                  id: index,
-                  code: stock.code,
-                  name: stock.name,
-                  market: 'US',
-                  industry: '科技',
-                  description: '',
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                  price: stock.price,
-                  change: stock.change,
-                }}
-                onClick={() => console.log('查看股票详情:', stock.code)}
-              />
-            </div>
-          ))}
-        </div>
       </div>
 
       <div className="card p-6">

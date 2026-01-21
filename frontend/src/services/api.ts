@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, IndexOverview } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -299,6 +299,14 @@ export const syncTaskAPI = {
     api.post('/sync-management/sync-index-basic'),
 };
 
+export const indexAPI = {
+  getLatestIndices: (): Promise<{ data: IndexDaily[] }> =>
+    api.get('/indices/latest'),
+
+  getIndexDaily: (ts_code: string, skip?: number, limit?: number): Promise<{ data: IndexDaily[] }> =>
+    api.get(`/indices/${ts_code}`, { params: { skip, limit } }),
+};
+
 const apiServices = {
   user: userAPI,
   stock: stockAPI,
@@ -312,6 +320,7 @@ const apiServices = {
   analysisTask: analysisTaskAPI,
   systemSetting: systemSettingAPI,
   syncTask: syncTaskAPI,
+  index: indexAPI,
 };
 
 export default apiServices;

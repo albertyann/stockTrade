@@ -240,7 +240,6 @@ export interface SyncTask {
   updated_at?: string;
 }
 
-// 同步执行日志类型
 export interface SyncExecutionLog {
   id: number;
   task_id: number;
@@ -252,4 +251,27 @@ export interface SyncExecutionLog {
   error_message?: string;
   output_summary: Record<string, any>;
   created_at: string;
+}
+
+export interface IndexDaily {
+  ts_code: string;
+  trade_date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  pre_close: number;
+  change: number;
+  pct_chg: number;
+  vol: number;
+  amount: number;
+  name?: string;
+}
+
+export interface IndexOverview {
+  ts_code: string;
+  name?: string;
+  close: number;
+  pct_chg: number;
+  trade_date: string;
 }
