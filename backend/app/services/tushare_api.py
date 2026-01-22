@@ -153,3 +153,44 @@ class TushareAPI:
             交易所股票列表
         """
         return self.get_stock_basic(exchange=exchange, list_status=list_status)
+
+    def get_daily_data(
+        self,
+        ts_code: str,
+        start_date: str = None,
+        end_date: str = None,
+        trade_date: str = None
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        获取日线行情数据
+
+        Args:
+            ts_code: 股票代码，如 '000001.SZ'
+            start_date: 开始日期 (YYYYMMDD)
+            end_date: 结束日期 (YYYYMMDD)
+            trade_date: 交易日期 (YYYYMMDD)
+
+        Returns:
+            日线数据列表
+        """
+        if not self.pro:
+            print("Tushare API not configured")
+            return None
+
+        try:
+            params = {"ts_code": ts_code}
+
+            if start_date:
+                params["start_date"] = start_date
+            if end_date:
+                params["end_date"] = end_date
+            if trade_date:
+                params["trade_date"] = trade_date
+
+            df = self.pro.daily(**params)
+            if df is not None and not df.empty:
+                return df.to_dict(orient="records")
+            return []
+        except Exception as e:
+            print(f"Error fetching daily data from Tushare: {str(e)}")
+            return None

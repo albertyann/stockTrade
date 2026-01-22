@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -307,6 +307,28 @@ export const indexAPI = {
     api.get(`/indices/${ts_code}`, { params: { skip, limit } }),
 };
 
+export const stockDailyAPI = {
+  getStockDaily: (ts_code: string, skip?: number, limit?: number): Promise<{ data: StockDaily[] }> =>
+    api.get(`/stock-daily/${ts_code}`, { params: { skip, limit } }),
+
+  getLatestStockDaily: (ts_code: string): Promise<{ data: StockDaily }> =>
+    api.get(`/stock-daily/${ts_code}/latest`),
+
+  getStockDailyByRange: (ts_code: string, start_date: string, end_date: string): Promise<{ data: StockDaily[] }> =>
+    api.get(`/stock-daily/${ts_code}/range`, { params: { start_date, end_date } }),
+};
+
+export const financialAPI = {
+  getIncomeStatements: (stock_id: number, skip?: number, limit?: number): Promise<{ data: StockIncomeStatement[] }> =>
+    api.get(`/financials/${stock_id}/income`, { params: { skip, limit } }),
+
+  getBalanceSheets: (stock_id: number, skip?: number, limit?: number): Promise<{ data: StockBalanceSheet[] }> =>
+    api.get(`/financials/${stock_id}/balance`, { params: { skip, limit } }),
+
+  getCashFlows: (stock_id: number, skip?: number, limit?: number): Promise<{ data: StockCashFlow[] }> =>
+    api.get(`/financials/${stock_id}/cashflow`, { params: { skip, limit } }),
+};
+
 const apiServices = {
   user: userAPI,
   stock: stockAPI,
@@ -321,6 +343,8 @@ const apiServices = {
   systemSetting: systemSettingAPI,
   syncTask: syncTaskAPI,
   index: indexAPI,
+  stockDaily: stockDailyAPI,
+  financial: financialAPI,
 };
 
 export default apiServices;

@@ -142,92 +142,285 @@ class DataSyncService:
         
     def sync_stock_trading_data(self, stock_code: str):
         """
-        同步股票交易数据
+        同步股票交易数据 - 优先使用 Tushare API，如果 Tushare 不可用则使用 Alpha Vantage
         """
         logger.info(f"========== 开始同步股票 {stock_code} 的日线数据 ==========")
         logger.info(f"同步时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-        daily_data = self.alpha_vantage_api.get_daily_data(stock_code)
-        if daily_data and "Time Series (Daily)" in daily_data:
-            time_series = daily_data["Time Series (Daily)"]
-            dates = sorted(time_series.keys())
-            logger.info(f"从 Alpha Vantage 获取到 {len(time_series)} 条交易数据")
-            logger.info(f"数据范围: {dates[-1]} 至 {dates[0]} (最新至最旧)")
+        daily_data = None
 
-            new_count = 0
-            update_count = 0
-            error_count = 0
+        if self.tushare_api.is_available():
+            logger.info("使用 Tushare API 获取数据")
+            daily_data = self.tushare_api.get_daily_data(ts_code=stock_code)
 
-            for trade_date_str, data in time_series.items():
+            if daily_data and len(daily_data) > 0:
+                logger.info(f"从 Tushare 获取到 {len(daily_data)} 条交易数据")
+                dates = [item.get("trade_date") for item in daily_data if item.get("trade_date")]
+                if dates:
+                    logger.info(f"数据范围: {max(dates)} 至 {min(dates)}")
+
+                new_count = 0
+                update_count = 0
+                error_count = 0
+
+                for item in daily_data:
+                    try:
+                        trade_date_str = item.get("trade_date")
+                        if not trade_date_str:
+                            continue
+
+                        trade_date = parse_date(trade_date_str).date()
+                        open_price = item.get("open")
+                        high_price = item.get("high")
+                        low_price = item.get("low")
+                        close_price = item.get("close")
+                        pre_close = item.get("pre_close")
+                        change = item.get("change")
+                        pct_chg = item.get("pct_chg")
+                        vol = item.get("vol")
+                        amount = item.get("amount")
+
+                        existing = self.db.query(StockDaily).filter(
+                            StockDaily.ts_code == stock_code,
+                            StockDaily.trade_date == trade_date
+                        ).first()
+
+                        if existing:
+                            existing.open = open_price
+                            existing.high = high_price
+                            existing.low = low_price
+                            existing.close = close_price
+                            existing.pre_close = pre_close
+                            existing.change = change
+                            existing.pct_chg = pct_chg
+                            existing.vol = vol
+                            existing.amount = amount
+                            update_count += 1
+                        else:
+                            new_daily = StockDaily(
+                                ts_code=stock_code,
+                                trade_date=trade_date,
+                                open=open_price,
+                                high=high_price,
+                                low=low_price,
+                                close=close_price,
+                                pre_close=pre_close,
+                                change=change,
+                                pct_chg=pct_chg,
+                                vol=vol,
+                                amount=amount
+                            )
+                            self.db.add(new_daily)
+                            new_count += 1
+                    except Exception as e:
+                        logger.error(f"处理交易数据失败 {item.get('trade_date')}: {str(e)}")
+                        error_count += 1
+
                 try:
-                    trade_date = parse_date(trade_date_str).date()
-                    open_price = float(data.get("1. open", 0))
-                    high_price = float(data.get("2. high", 0))
-                    low_price = float(data.get("3. low", 0))
-                    close_price = float(data.get("4. close", 0))
-                    volume = float(data.get("5. volume", 0))
-
-                    existing = self.db.query(StockDaily).filter(
-                        StockDaily.ts_code == stock_code,
-                        StockDaily.trade_date == trade_date
-                    ).first()
-
-                    if existing:
-                        existing.open = open_price
-                        existing.high = high_price
-                        existing.low = low_price
-                        existing.close = close_price
-                        existing.vol = volume
-                        update_count += 1
-                    else:
-                        stock_daily = StockDaily(
-                            ts_code=stock_code,
-                            trade_date=trade_date,
-                            open=open_price,
-                            high=high_price,
-                            low=low_price,
-                            close=close_price,
-                            vol=volume
-                        )
-                        self.db.add(stock_daily)
-                        new_count += 1
-
+                    self.db.commit()
+                    logger.info(f"✓ 股票 {stock_code} 的交易数据保存成功")
+                    logger.info(f"新增: {new_count} 条, 更新: {update_count} 条, 失败: {error_count} 条")
                 except Exception as e:
-                    error_count += 1
-                    logger.error(f"保存股票 {stock_code} 在 {trade_date_str} 的数据失败: {str(e)}")
-                    continue
-
-            logger.info(f"处理完成: 新增 {new_count} 条, 更新 {update_count} 条, 失败 {error_count} 条")
-
-            try:
-                self.db.commit()
-                logger.info(f"✓ 股票 {stock_code} 的交易数据保存成功")
-            except Exception as e:
-                self.db.rollback()
-                logger.error(f"✗ 提交股票 {stock_code} 的交易数据失败: {str(e)}")
-                raise
+                    self.db.rollback()
+                    logger.error(f"✗ 提交股票 {stock_code} 的交易数据失败: {str(e)}")
+                    raise
+            else:
+                logger.warning(f"Tushare 未获取到有效数据")
+                logger.info(f"API响应: {daily_data if daily_data else '无响应'}")
         else:
-            logger.warning(f"股票 {stock_code} 未获取到有效数据")
-            logger.info(f"API响应: {daily_data if daily_data else '无响应'}")
+            logger.info("Tushare API 不可用，使用 Alpha Vantage")
+            daily_data = self.alpha_vantage_api.get_daily_data(stock_code)
+
+            if daily_data and "Time Series (Daily)" in daily_data:
+                time_series = daily_data["Time Series (Daily)"]
+                dates = sorted(time_series.keys())
+                logger.info(f"从 Alpha Vantage 获取到 {len(time_series)} 条交易数据")
+                logger.info(f"数据范围: {dates[-1]} 至 {dates[0]} (最新至最旧)")
+
+                new_count = 0
+                update_count = 0
+                error_count = 0
+
+                for trade_date_str, data in time_series.items():
+                    try:
+                        trade_date = parse_date(trade_date_str).date()
+                        open_price = float(data.get("1. open", 0))
+                        high_price = float(data.get("2. high", 0))
+                        low_price = float(data.get("3. low", 0))
+                        close_price = float(data.get("4. close", 0))
+                        volume = float(data.get("5. volume", 0))
+
+                        existing = self.db.query(StockDaily).filter(
+                            StockDaily.ts_code == stock_code,
+                            StockDaily.trade_date == trade_date
+                        ).first()
+
+                        if existing:
+                            existing.open = open_price
+                            existing.high = high_price
+                            existing.low = low_price
+                            existing.close = close_price
+                            existing.pre_close = float(data.get("4. close", 0))
+                            existing.change = float(data.get("5. volume", 0))
+                            existing.pct_chg = float(data.get("6. volume", 0))
+                            existing.vol = volume
+                            existing.amount = float(data.get("6. volume", 0))
+                            update_count += 1
+                        else:
+                            new_daily = StockDaily(
+                                ts_code=stock_code,
+                                trade_date=trade_date,
+                                open=open_price,
+                                high=high_price,
+                                low=low_price,
+                                close=close_price,
+                                pre_close=float(data.get("4. close", 0)),
+                                change=float(data.get("5. volume", 0)),
+                                pct_chg=float(data.get("6. volume", 0)),
+                                vol=volume,
+                                amount=float(data.get("6. volume", 0))
+                            )
+                            self.db.add(new_daily)
+                            new_count += 1
+                    except Exception as e:
+                        logger.error(f"处理交易数据失败 {trade_date_str}: {str(e)}")
+                        error_count += 1
+
+                try:
+                    self.db.commit()
+                    logger.info(f"✓ 股票 {stock_code} 的交易数据保存成功")
+                    logger.info(f"新增: {new_count} 条, 更新: {update_count} 条, 失败: {error_count} 条")
+                except Exception as e:
+                    self.db.rollback()
+                    logger.error(f"✗ 提交股票 {stock_code} 的交易数据失败: {str(e)}")
+                    raise
+            else:
+                logger.warning(f"股票 {stock_code} 未获取到有效数据")
+                logger.info(f"API响应: {daily_data if daily_data else '无响应'}")
 
         logger.info(f"========== 股票 {stock_code} 同步完成 ==========")
             
     def sync_financial_data(self, stock_code: str):
-        """
-        同步财务数据
-        """
+        from ..crud.stock_income_statement import upsert_income_statements
+        from ..crud.stock_balance_sheet import upsert_balance_sheets
+        from ..crud.stock_cash_flow import upsert_cash_flows
+        from ..models.stock import Stock
+
+        stock = self.db.query(Stock).filter(Stock.ts_code == stock_code).first()
+        if not stock:
+            logger.warning(f"股票 {stock_code} 不存在，跳过财务数据同步")
+            return
+
+        stock_id = stock.id
+        ts_code = stock.ts_code
+
         income_statement = self.alpha_vantage_api.get_income_statement(stock_code)
         balance_sheet = self.alpha_vantage_api.get_balance_sheet(stock_code)
         cash_flow = self.alpha_vantage_api.get_cash_flow(stock_code)
-        
+
         if income_statement and "annualReports" in income_statement:
-            print(f"同步股票 {stock_code} 的利润表数据，共 {len(income_statement['annualReports'])} 条")
-            
+            reports = income_statement["annualReports"]
+            income_data = []
+            for report in reports:
+                income_data.append({
+                    "ts_code": ts_code,
+                    "fiscal_date_ending": parse_date(report.get("fiscalDateEnding")),
+                    "reported_currency": report.get("reportedCurrency"),
+                    "total_revenue": report.get("totalRevenue"),
+                    "cost_of_revenue": report.get("costOfRevenue"),
+                    "gross_profit": report.get("grossProfit"),
+                    "total_operating_expenses": report.get("totalOperatingExpenses"),
+                    "operating_income": report.get("operatingIncome"),
+                    "interest_expense": report.get("interestExpense"),
+                    "income_before_tax": report.get("incomeBeforeTax"),
+                    "income_tax_expense": report.get("incomeTaxExpense"),
+                    "net_income": report.get("netIncome"),
+                    "ebit": report.get("ebit"),
+                    "ebitda": report.get("ebitda"),
+                    "net_income_from_continuing_operations": report.get("netIncomeFromContinuingOperations"),
+                    "comprehensive_income_net_of_tax": report.get("comprehensiveIncomeNetOfTax"),
+                    "raw_data": report
+                })
+
+            try:
+                count = upsert_income_statements(self.db, stock_id, income_data)
+                logger.info(f"同步股票 {stock_code} 的利润表数据，共 {count} 条")
+            except Exception as e:
+                logger.error(f"保存利润表数据失败: {str(e)}")
+                self.db.rollback()
+        else:
+            logger.warning(f"股票 {stock_code} 无利润表数据")
+
         if balance_sheet and "annualReports" in balance_sheet:
-            print(f"同步股票 {stock_code} 的资产负债表数据，共 {len(balance_sheet['annualReports'])} 条")
-            
+            reports = balance_sheet["annualReports"]
+            balance_data = []
+            for report in reports:
+                balance_data.append({
+                    "ts_code": ts_code,
+                    "fiscal_date_ending": parse_date(report.get("fiscalDateEnding")),
+                    "reported_currency": report.get("reportedCurrency"),
+                    "total_assets": report.get("totalAssets"),
+                    "total_current_assets": report.get("totalCurrentAssets"),
+                    "cash_and_cash_equivalents_at_carrying_value": report.get("cashAndCashEquivalentsAtCarryingValue"),
+                    "cash_and_short_term_investments": report.get("cashAndShortTermInvestments"),
+                    "total_non_current_assets": report.get("totalNonCurrentAssets"),
+                    "property_plant_equipment": report.get("propertyPlantEquipment"),
+                    "total_liabilities": report.get("totalLiabilities"),
+                    "total_current_liabilities": report.get("totalCurrentLiabilities"),
+                    "current_long_term_debt": report.get("currentLongTermDebt"),
+                    "long_term_debt": report.get("longTermDebt"),
+                    "total_non_current_liabilities": report.get("totalNonCurrentLiabilities"),
+                    "total_shareholder_equity": report.get("totalShareholderEquity"),
+                    "treasury_stock": report.get("treasuryStock"),
+                    "retained_earnings": report.get("retainedEarnings"),
+                    "common_shares_outstanding": report.get("commonSharesOutstanding"),
+                    "raw_data": report
+                })
+
+            try:
+                count = upsert_balance_sheets(self.db, stock_id, balance_data)
+                logger.info(f"同步股票 {stock_code} 的资产负债表数据，共 {count} 条")
+            except Exception as e:
+                logger.error(f"保存资产负债表数据失败: {str(e)}")
+                self.db.rollback()
+        else:
+            logger.warning(f"股票 {stock_code} 无资产负债表数据")
+
         if cash_flow and "annualReports" in cash_flow:
-            print(f"同步股票 {stock_code} 的现金流量表数据，共 {len(cash_flow['annualReports'])} 条")
+            reports = cash_flow["annualReports"]
+            cashflow_data = []
+            for report in reports:
+                cashflow_data.append({
+                    "ts_code": ts_code,
+                    "fiscal_date_ending": parse_date(report.get("fiscalDateEnding")),
+                    "reported_currency": report.get("reportedCurrency"),
+                    "operating_cashflow": report.get("operatingCashflow"),
+                    "payments_for_operating_activities": report.get("paymentsForOperatingActivities"),
+                    "proceeds_from_operating_activities": report.get("proceedsFromOperatingActivities"),
+                    "depreciation_amortization": report.get("depreciationAndAmortization"),
+                    "stock_based_compensation": report.get("stockBasedCompensation"),
+                    "operating_cashflow_continuing": report.get("operatingCashflowContinuing"),
+                    "capital_expenditures": report.get("capitalExpenditures"),
+                    "capital_expenditure_for_property_plant_equipment": report.get("capitalExpenditureForPropertyPlantEquipment"),
+                    "proceeds_from_sale_of_property_plant_equipment": report.get("proceedsFromSaleOfPropertyPlantEquipment"),
+                    "investment_purchase_and_sale": report.get("investmentPurchaseAndSale"),
+                    "sale_purchase_of_investment": report.get("salePurchaseOfInvestment"),
+                    "net_borrowings": report.get("netBorrowings"),
+                    "other_financing_activities": report.get("otherFinancingActivities"),
+                    "cash_flow_from_financing": report.get("cashFlowFromFinancing"),
+                    "dividends_paid": report.get("dividendsPaid"),
+                    "free_cash_flow": report.get("freeCashFlow"),
+                    "raw_data": report
+                })
+
+            try:
+                count = upsert_cash_flows(self.db, stock_id, cashflow_data)
+                logger.info(f"同步股票 {stock_code} 的现金流量表数据，共 {count} 条")
+            except Exception as e:
+                logger.error(f"保存现金流量表数据失败: {str(e)}")
+                self.db.rollback()
+        else:
+            logger.warning(f"股票 {stock_code} 无现金流量表数据")
             
     def sync_all_chinese_stocks(self, list_status: str = "L", market: str = None) -> Dict[str, Any]:
         """

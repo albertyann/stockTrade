@@ -267,3 +267,95 @@ export interface IndexDaily {
   amount: number;
   name?: string;
 }
+
+export interface StockDaily {
+  ts_code: string;
+  trade_date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  pre_close: number;
+  change: number;
+  pct_chg: number;
+  vol: number;
+  amount: number;
+  created_at: string;
+}
+
+export interface StockIncomeStatement {
+  id: number;
+  stock_id: number;
+  ts_code: string;
+  fiscal_date_ending: string;
+  reported_currency: string;
+  total_revenue: number;
+  cost_of_revenue: number;
+  gross_profit: number;
+  total_operating_expenses: number;
+  operating_income: number;
+  interest_expense: number;
+  income_before_tax: number;
+  income_tax_expense: number;
+  net_income: number;
+  ebit: number;
+  ebitda: number;
+  net_income_from_continuing_operations: number;
+  comprehensive_income_net_of_tax: number;
+  raw_data: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockBalanceSheet {
+  id: number;
+  stock_id: number;
+  ts_code: string;
+  fiscal_date_ending: string;
+  reported_currency: string;
+  total_assets: number;
+  total_current_assets: number;
+  cash_and_cash_equivalents_at_carrying_value: number;
+  cash_and_short_term_investments: number;
+  total_non_current_assets: number;
+  property_plant_equipment: number;
+  total_liabilities: number;
+  total_current_liabilities: number;
+  current_long_term_debt: number;
+  long_term_debt: number;
+  total_non_current_liabilities: number;
+  total_shareholder_equity: number;
+  treasury_stock: number;
+  retained_earnings: number;
+  common_shares_outstanding: number;
+  raw_data: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockCashFlow {
+  id: number;
+  stock_id: number;
+  ts_code: string;
+  fiscal_date_ending: string;
+  reported_currency: string;
+  operating_cashflow: number;
+  payments_for_operating_activities: number;
+  proceeds_from_operating_activities: number;
+  depreciation_amortization: number;
+  stock_based_compensation: number;
+  operating_cashflow_continuing: number;
+  capital_expenditures: number;
+  capital_expenditure_for_property_plant_equipment: number;
+  proceeds_from_sale_of_property_plant_equipment: number;
+  investment_purchase_and_sale: number;
+  sale_purchase_of_investment: number;
+  net_borrowings: number;
+  other_financing_activities: number;
+  cash_flow_from_financing: number;
+  dividends_paid: number;
+  free_cash_flow: number;
+  raw_data: any;
+  created_at: string;
+  updated_at: string;
+}
