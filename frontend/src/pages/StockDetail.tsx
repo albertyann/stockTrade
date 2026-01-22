@@ -474,48 +474,7 @@ const StockDetail: React.FC = () => {
         </div>
       </div>
 
-      {dailyData.length > 0 && (
-        <div className="card p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">K线数据 (最近{Math.min(dailyData.length, 1000)}条)</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">交易日期</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开盘价</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最高价</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最低价</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">收盘价</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">涨跌幅</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成交量</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {dailyData.slice(0, 50).map((item, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{item.trade_date}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">¥{item.open?.toFixed(2)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">¥{item.high?.toFixed(2)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">¥{item.low?.toFixed(2)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-medium">¥{item.close?.toFixed(2)}</td>
-                    <td className={`px-4 py-3 whitespace-nowrap text-sm font-medium ${item.pct_chg && item.pct_chg >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                      {item.pct_chg ? `${item.pct_chg >= 0 ? '+' : ''}${item.pct_chg.toFixed(2)}%` : '-'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{(item.vol || 0).toFixed(0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {dailyData.length > 50 && (
-            <div className="mt-4 text-center text-sm text-gray-500">
-              显示前50条数据，共{dailyData.length}条
-            </div>
-          )}
-        </div>
-      )}
+      <div className="p-6"></div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="card p-6">
