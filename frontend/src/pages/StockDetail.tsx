@@ -21,6 +21,84 @@ const calculateMA = (dayCount: number, data: StockDaily[]): (string | number)[] 
   return result;
 };
 
+const calculateEMA = (dayCount: number, data: StockDaily[]): (string | number)[] => {
+  const result: (string | number)[] = [];
+  const k = 2 / (dayCount + 1);
+
+  for (let i = 0, len = data.length; i < len; i++) {
+    if (i < dayCount - 1) {
+      result.push('-');
+      continue;
+    }
+    if (i === dayCount - 1) {
+      let sum = 0;
+      for (let j = 0; j < dayCount; j++) {
+        sum += data[i - j].close;
+      }
+      result.push(parseFloat((sum / dayCount).toFixed(2)));
+    } else {
+      const prevEMA = result[i - 1];
+      const currentEMA = typeof prevEMA === 'number'
+        ? (data[i].close - prevEMA) * k + prevEMA
+        : data[i].close;
+      result.push(parseFloat(currentEMA.toFixed(2)));
+    }
+  }
+  return result;
+};
+
+const calculateMACD = (data: StockDaily[]) => {
+  const ema12 = calculateEMA(12, data);
+  const ema26 = calculateEMA(26, data);
+
+  const dif: (string | number)[] = [];
+  const dea: (string | number)[] = [];
+  const macd: (string | number)[] = [];
+
+  for (let i = 0, len = data.length; i < len; i++) {
+    const e12 = ema12[i];
+    const e26 = ema26[i];
+
+    if (typeof e12 !== 'number' || typeof e26 !== 'number') {
+      dif.push('-');
+      dea.push('-');
+      macd.push('-');
+      continue;
+    }
+
+    const difValue = e12 - e26;
+    dif.push(parseFloat(difValue.toFixed(2)));
+
+    if (i < 26 + 8) {
+      dea.push('-');
+      macd.push('-');
+    } else if (i === 26 + 8) {
+      let sum = 0;
+      for (let j = 0; j < 9; j++) {
+        const val = dif[i - j];
+        if (typeof val === 'number') {
+          sum += val;
+        }
+      }
+      const deaValue = sum / 9;
+      dea.push(parseFloat(deaValue.toFixed(2)));
+      const macdValue = 2 * (difValue - deaValue);
+      macd.push(parseFloat(macdValue.toFixed(2)));
+    } else {
+      const k = 2 / 10;
+      const prevDEA = dea[i - 1];
+      const deaValue = typeof prevDEA === 'number'
+        ? (difValue - prevDEA) * k + prevDEA
+        : difValue;
+      dea.push(parseFloat(deaValue.toFixed(2)));
+      const macdValue = 2 * (difValue - deaValue);
+      macd.push(parseFloat(macdValue.toFixed(2)));
+    }
+  }
+
+  return { dif, dea, macd };
+};
+
 const colorList = ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae'];
 const labelFont = 'bold 12px Sans-serif';
 
@@ -41,6 +119,15 @@ const StockDetail: React.FC = () => {
   const [loadingIncome, setLoadingIncome] = useState(false);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [loadingCashflow, setLoadingCashflow] = useState(false);
+
+  const [showMA5, setShowMA5] = useState(true);
+  const [showMA10, setShowMA10] = useState(true);
+  const [showMA20, setShowMA20] = useState(true);
+  const [showMA30, setShowMA30] = useState(true);
+  const [showMA60, setShowMA60] = useState(true);
+
+  const [selectedIndicator, setSelectedIndicator] = useState<'MACD' | 'KDJ'>('MACD');
+  const [timePeriod, setTimePeriod] = useState<'1M' | '3M' | '6M' | '1Y'>('6M');
 
   const fetchStock = useCallback(async () => {
     if (!id) return;
@@ -241,67 +328,195 @@ const StockDetail: React.FC = () => {
   const dataMA10 = calculateMA(10, dataReversed);
   const dataMA20 = calculateMA(20, dataReversed);
   const dataMA30 = calculateMA(30, dataReversed);
+  const dataMA60 = calculateMA(60, dataReversed);
+
+  const macdData = calculateMACD(dataReversed);
+  const dataDIF = macdData.dif;
+  const dataDEA = macdData.dea;
+  const dataMACD = macdData.macd;
 
   const chartOption = {
     animation: false,
     color: colorList,
+    backgroundColor: '#ffffff',
     title: {
       left: 'center',
-      text: `${stock.name} (${stock.ts_code})`
+      text: `${stock.name} (${stock.ts_code})`,
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1e293b'
+      },
+      top: 10
     },
     legend: {
-      top: 30,
-      data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
-    },
-    height: 500,
-    tooltip: {
-      triggerOn: 'none',
-      transitionDuration: 0,
-      confine: true,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: '#333',
-      backgroundColor: 'rgba(255,255,255,0.9)',
+      top: 45,
+      data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30', 'MA60', 'MACD', 'DIF', 'DEA'],
       textStyle: {
         fontSize: 12,
-        color: '#333'
+        color: '#64748b'
       },
-      position: function (pos: any, params: any, el: any, elRect: any, size: any) {
-        const position: any = {
-          top: 60
-        };
-        const side = pos[0] < size.viewSize[0] / 2 ? 'left' : 'right';
-        position[side] = 5;
-        return position;
+      itemGap: 20,
+      selectedMode: true,
+      type: 'scroll'
+    },
+    height: 600,
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        lineStyle: {
+          color: '#3b82f6',
+          width: 1,
+          type: 'dashed'
+        },
+        crossStyle: {
+          color: '#3b82f6',
+          width: 1
+        }
+      },
+      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+      borderColor: '#e2e8f0',
+      borderWidth: 1,
+      textStyle: {
+        fontSize: 12,
+        color: '#334155'
+      },
+      padding: [12, 16],
+      extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 6px;',
+      formatter: function (params: any) {
+        const date = params[0].axisValue;
+        const dateObj = new Date(date);
+        const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        
+        let result = `<div style="font-weight: bold; margin-bottom: 8px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">${formattedDate}</div>`;
+        
+        params.forEach((param: any) => {
+          if (param.seriesName === '日K') {
+            const data = param.data;
+            const isUp = data[1] >= data[0];
+            const color = isUp ? '#ef232a' : '#14b143';
+            
+            result += `
+              <div style="margin: 8px 0;">
+                <div style="font-weight: 600; color: #475569; margin-bottom: 4px;">K线数据</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                  <div style="color: #64748b;">开盘:</div>
+                  <div style="font-weight: bold; text-align: right;">¥${data[0]?.toFixed(2) || '-'}</div>
+                  <div style="color: #64748b;">收盘:</div>
+                  <div style="font-weight: bold; text-align: right; color: ${color};">¥${data[1]?.toFixed(2) || '-'}</div>
+                  <div style="color: #64748b;">最低:</div>
+                  <div style="font-weight: bold; text-align: right;">¥${data[2]?.toFixed(2) || '-'}</div>
+                  <div style="color: #64748b;">最高:</div>
+                  <div style="font-weight: bold; text-align: right;">¥${data[3]?.toFixed(2) || '-'}</div>
+                </div>
+              </div>
+            `;
+          } else if (param.seriesName === 'Volume') {
+            const volume = param.data;
+            const volumeInMillion = (volume / 1000000).toFixed(2);
+            result += `
+              <div style="margin: 8px 0; padding-top: 8px; border-top: 1px solid #f1f5f9;">
+                <div style="font-weight: 600; color: #475569; margin-bottom: 4px;">成交量</div>
+                <div style="font-weight: bold; font-size: 14px;">${volumeInMillion}M</div>
+              </div>
+            `;
+          } else if (param.seriesName === 'MACD') {
+            if (typeof param.data === 'object' && param.data.value !== '-') {
+              const value = param.data.value;
+              const color = value >= 0 ? '#ef232a' : '#14b143';
+              result += `
+                <div style="margin: 8px 0;">
+                  <div style="font-weight: 600; color: #475569; margin-bottom: 4px;">MACD</div>
+                  <div style="font-weight: bold; font-size: 14px; color: ${color};">${value.toFixed(2)}</div>
+                </div>
+              `;
+            }
+          } else if (param.seriesName === 'DIF' || param.seriesName === 'DEA') {
+            if (param.data !== '-') {
+              const color = param.seriesName === 'DIF' ? '#da70d6' : '#ff8c00';
+              result += `
+                <div style="margin: 4px 0;">
+                  <span style="color: ${color}; font-weight: bold;">●</span>
+                  <span style="color: #64748b; margin-left: 4px;">${param.seriesName}:</span>
+                  <span style="font-weight: bold; margin-left: 8px;">${param.data.toFixed(2)}</span>
+                </div>
+              `;
+            }
+          } else if (param.data !== '-') {
+            const color = param.color || '#64748b';
+            result += `
+              <div style="margin: 4px 0;">
+                <span style="color: ${color}; font-weight: bold;">●</span>
+                <span style="color: #64748b; margin-left: 4px;">${param.seriesName}:</span>
+                <span style="font-weight: bold; margin-left: 8px;">${param.data.toFixed(2)}</span>
+              </div>
+            `;
+          }
+        });
+        
+        return result;
       }
     },
     axisPointer: {
       link: [
         {
-          xAxisIndex: [0, 1]
+          xAxisIndex: [0, 1, 2]
         }
       ]
     },
     dataZoom: [
       {
         type: 'slider',
-        xAxisIndex: [0, 1],
-        realtime: false,
-        start: 20,
-        end: 70,
-        top: 65,
+        xAxisIndex: [0, 1, 2],
+        realtime: true,
+        start: 30,
+        end: 100,
+        top: 85,
         height: 20,
         handleIcon:
           'path://M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-        handleSize: '120%'
+        handleSize: '120%',
+        handleStyle: {
+          color: '#3b82f6',
+          borderColor: '#3b82f6',
+          borderWidth: 1
+        },
+        textStyle: {
+          color: '#64748b'
+        },
+        fillerColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+        dataBackground: {
+          lineStyle: {
+            color: '#cbd5e1',
+            width: 1
+          },
+          areaStyle: {
+            color: '#e2e8f0'
+          }
+        },
+        selectedDataBackground: {
+          lineStyle: {
+            color: '#3b82f6',
+            width: 1
+          },
+          areaStyle: {
+            color: 'rgba(59, 130, 246, 0.1)'
+          }
+        }
       },
       {
         type: 'inside',
-        xAxisIndex: [0, 1],
-        start: 40,
-        end: 70,
-        top: 30,
-        height: 20
+        xAxisIndex: [0, 1, 2],
+        start: 30,
+        end: 100,
+        top: 85,
+        height: 20,
+        zoomOnMouseWheel: false,
+        // moveOnMouseMove: false,
+        // moveOnMouseWheel: false
       }
     ],
     xAxis: [
@@ -309,105 +524,173 @@ const StockDetail: React.FC = () => {
         type: 'category',
         data: dates,
         boundaryGap: false,
-        axisLine: { lineStyle: { color: '#777' } },
+        axisLine: { 
+          lineStyle: { 
+            color: '#cbd5e1',
+            width: 1
+          } 
+        },
+        axisTick: {
+          show: true,
+          lineStyle: {
+            color: '#cbd5e1'
+          },
+          alignWithLabel: true
+        },
         axisLabel: {
+          color: '#64748b',
+          fontSize: 11,
+          margin: 8,
           formatter: function (value: string) {
             const date = new Date(value);
-            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+          }
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            type: 'dashed',
+            color: '#f1f5f9'
           }
         },
         min: 'dataMin',
         max: 'dataMax',
-        axisPointer: {
-          show: true
-        }
+        splitNumber: 10
       },
       {
         type: 'category',
         gridIndex: 1,
         data: dates,
         boundaryGap: false,
-        splitLine: { show: false },
-        axisLabel: { show: false },
+        axisLine: { show: false },
         axisTick: { show: false },
-        axisLine: { lineStyle: { color: '#777' } },
+        axisLabel: { show: false },
+        splitLine: { show: false },
         min: 'dataMin',
-        max: 'dataMax',
-        axisPointer: {
-          type: 'shadow',
-          label: { show: false },
-          triggerTooltip: true,
-          handle: {
-            show: true,
-            margin: 30,
-            color: '#B80C00'
-          }
-        }
+        max: 'dataMax'
+      },
+      {
+        type: 'category',
+        gridIndex: 2,
+        data: dates,
+        boundaryGap: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+        min: 'dataMin',
+        max: 'dataMax'
       }
     ],
     yAxis: [
       {
         scale: true,
-        splitNumber: 2,
-        axisLine: { lineStyle: { color: '#777' } },
-        splitLine: { show: true },
-        axisTick: { show: false },
+        splitNumber: 5,
+        position: 'right',
+        axisLine: { 
+          show: true,
+          lineStyle: { 
+            color: '#cbd5e1',
+            width: 1
+          } 
+        },
+        axisTick: {
+          show: true,
+          lineStyle: {
+            color: '#cbd5e1'
+          }
+        },
+        splitLine: { 
+          show: true,
+          lineStyle: {
+            type: 'dashed',
+            color: '#f1f5f9'
+          }
+        },
         axisLabel: {
-          inside: true,
-          formatter: '{value}\n'
+          color: '#64748b',
+          fontSize: 11,
+          margin: 4,
+          formatter: function (value: number) {
+            return '¥' + value.toFixed(2);
+          }
+        },
+        splitArea: {
+          show: true,
+          areaStyle: {
+            color: ['rgba(248, 250, 252, 0.5)', 'rgba(255, 255, 255, 0.5)']
+          }
         }
       },
       {
         scale: true,
         gridIndex: 1,
         splitNumber: 2,
-        axisLabel: { show: false },
+        position: 'right',
         axisLine: { show: false },
         axisTick: { show: false },
+        axisLabel: { show: false },
         splitLine: { show: false }
+      },
+      {
+        scale: true,
+        gridIndex: 2,
+        splitNumber: 3,
+        position: 'right',
+        axisLine: { 
+          show: true,
+          lineStyle: { 
+            color: '#cbd5e1',
+            width: 1
+          } 
+        },
+        axisTick: {
+          show: true,
+          lineStyle: {
+            color: '#cbd5e1'
+          }
+        },
+        splitLine: { 
+          show: true,
+          lineStyle: {
+            type: 'dashed',
+            color: '#f1f5f9'
+          }
+        },
+        axisLabel: {
+          color: '#64748b',
+          fontSize: 11,
+          margin: 4
+        }
       }
     ],
     grid: [
       {
-        left: 20,
-        right: 20,
-        top: 110,
-        height: 120
+        left: 70,
+        right: 70,
+        top: 120,
+        height: 220,
+        backgroundColor: '#f8fafc',
+        borderColor: '#e2e8f0',
+        borderWidth: 1
       },
       {
-        left: 20,
-        right: 20,
-        height: 40,
-        top: 260
-      }
-    ],
-    graphic: [
+        left: 70,
+        right: 70,
+        height: 60,
+        top: 360,
+        backgroundColor: '#f8fafc',
+        borderColor: '#e2e8f0',
+        borderWidth: 1
+      },
       {
-        type: 'group',
-        left: 'center',
-        top: 70,
-        width: 300,
-        bounding: 'raw',
-        children: [
-          {
-            id: 'MA5',
-            type: 'text',
-            style: { fill: colorList[1], font: labelFont },
-            left: 0
-          },
-          {
-            id: 'MA10',
-            type: 'text',
-            style: { fill: colorList[2], font: labelFont },
-            left: 'center'
-          },
-          {
-            id: 'MA20',
-            type: 'text',
-            style: { fill: colorList[3], font: labelFont },
-            right: 0
-          }
-        ]
+        left: 70,
+        right: 70,
+        height: 80,
+        top: 440,
+        backgroundColor: '#f8fafc',
+        borderColor: '#e2e8f0',
+        borderWidth: 1
       }
     ],
     series: [
@@ -416,12 +699,23 @@ const StockDetail: React.FC = () => {
         type: 'bar',
         xAxisIndex: 1,
         yAxisIndex: 1,
+        barWidth: '80%',
         itemStyle: {
-          color: '#7fbe9e'
+          borderRadius: [2, 2, 0, 0],
+          color: function (params: any) {
+            const data = candlestickData[params.dataIndex];
+            if (data && data[1] >= data[0]) {
+              return 'rgba(239, 35, 42, 0.7)'; // Red for up days
+            } else {
+              return 'rgba(20, 177, 67, 0.7)'; // Green for down days
+            }
+          }
         },
         emphasis: {
           itemStyle: {
-            color: '#140'
+            opacity: 0.9,
+            shadowBlur: 4,
+            shadowColor: 'rgba(0, 0, 0, 0.2)'
           }
         },
         data: volumes
@@ -434,14 +728,16 @@ const StockDetail: React.FC = () => {
           color: '#ef232a',
           color0: '#14b143',
           borderColor: '#ef232a',
-          borderColor0: '#14b143'
+          borderColor0: '#14b143',
+          borderWidth: 1,
+          opacity: 0.9
         },
         emphasis: {
           itemStyle: {
-            color: 'black',
-            color0: '#444',
-            borderColor: 'black',
-            borderColor0: '#444'
+            borderWidth: 2,
+            shadowBlur: 8,
+            shadowColor: 'rgba(0, 0, 0, 0.2)',
+            opacity: 1
           }
         }
       },
@@ -451,8 +747,18 @@ const StockDetail: React.FC = () => {
         data: dataMA5,
         smooth: true,
         showSymbol: false,
+        visible: showMA5,
         lineStyle: {
-          width: 1
+          width: 1.5,
+          color: colorList[0],
+          opacity: 0.8
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
         }
       },
       {
@@ -461,8 +767,18 @@ const StockDetail: React.FC = () => {
         data: dataMA10,
         smooth: true,
         showSymbol: false,
+        visible: showMA10,
         lineStyle: {
-          width: 1
+          width: 1.5,
+          color: colorList[1],
+          opacity: 0.8
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
         }
       },
       {
@@ -471,8 +787,18 @@ const StockDetail: React.FC = () => {
         data: dataMA20,
         smooth: true,
         showSymbol: false,
+        visible: showMA20,
         lineStyle: {
-          width: 1
+          width: 1.5,
+          color: colorList[2],
+          opacity: 0.8
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
         }
       },
       {
@@ -481,8 +807,104 @@ const StockDetail: React.FC = () => {
         data: dataMA30,
         smooth: true,
         showSymbol: false,
+        visible: showMA30,
         lineStyle: {
-          width: 1
+          width: 1.5,
+          color: colorList[3],
+          opacity: 0.8
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
+        }
+      },
+      {
+        name: 'MA60',
+        type: 'line',
+        data: dataMA60,
+        smooth: true,
+        showSymbol: false,
+        visible: showMA60,
+        lineStyle: {
+          width: 1.5,
+          color: colorList[4],
+          opacity: 0.8
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
+        }
+      },
+      {
+        name: 'MACD',
+        type: 'bar',
+        xAxisIndex: 2,
+        yAxisIndex: 2,
+        barWidth: '70%',
+        itemStyle: {
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: [1, 1, 0, 0]
+        },
+        data: dataMACD.map((val) => {
+          if (typeof val !== 'number') return { value: '-', itemStyle: { color: 'transparent' } };
+          return { 
+            value: val, 
+            itemStyle: { 
+              color: val >= 0 ? 'rgba(239, 35, 42, 0.7)' : 'rgba(20, 177, 67, 0.7)'
+            } 
+          };
+        }),
+        emphasis: {
+          itemStyle: {
+            opacity: 0.9
+          }
+        }
+      },
+      {
+        name: 'DIF',
+        type: 'line',
+        xAxisIndex: 2,
+        yAxisIndex: 2,
+        data: dataDIF,
+        showSymbol: false,
+        lineStyle: {
+          width: 1.5,
+          color: '#da70d6',
+          opacity: 0.9
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
+        }
+      },
+      {
+        name: 'DEA',
+        type: 'line',
+        xAxisIndex: 2,
+        yAxisIndex: 2,
+        data: dataDEA,
+        showSymbol: false,
+        lineStyle: {
+          width: 1.5,
+          color: '#ff8c00',
+          opacity: 0.9
+        },
+        symbol: 'none',
+        emphasis: {
+          lineStyle: {
+            width: 2,
+            opacity: 1
+          }
         }
       }
     ]
@@ -613,8 +1035,78 @@ const StockDetail: React.FC = () => {
         </div>
       </div>
 
+      <div className="card p-4 mb-4">
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">均线:</span>
+            {[
+              { label: 'MA5', state: showMA5, setter: setShowMA5 },
+              { label: 'MA10', state: showMA10, setter: setShowMA10 },
+              { label: 'MA20', state: showMA20, setter: setShowMA20 },
+              { label: 'MA30', state: showMA30, setter: setShowMA30 },
+              { label: 'MA60', state: showMA60, setter: setShowMA60 },
+            ].map((ma) => (
+              <button
+                key={ma.label}
+                onClick={() => ma.setter(!ma.state)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  ma.state
+                    ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {ma.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">技术指标:</span>
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-md">
+              <button
+                onClick={() => setSelectedIndicator('MACD')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  selectedIndicator === 'MACD'
+                    ? 'bg-white text-primary-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                MACD
+              </button>
+              <button
+                onClick={() => setSelectedIndicator('KDJ')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  selectedIndicator === 'KDJ'
+                    ? 'bg-white text-primary-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                KDJ
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">时间:</span>
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-md">
+              {['1M', '3M', '6M', '1Y'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setTimePeriod(period as '1M' | '3M' | '6M' | '1Y')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    timePeriod === period
+                      ? 'bg-white text-primary-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="card p-6 mb-6">
-        <div className="h-[400px]">
+        <div className="h-[600px]">
           <ReactECharts option={chartOption} style={{ height: '100%' }} />
         </div>
       </div>
