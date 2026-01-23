@@ -2,9 +2,27 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { message } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import * as echarts from 'echarts';
 import { stockAPI, userStockAPI, stockDailyAPI, financialAPI, syncAPI } from '../services/api';
 import { Stock, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow } from '../types';
+
+const calculateMA = (dayCount: number, data: StockDaily[]): (string | number)[] => {
+  const result: (string | number)[] = [];
+  for (let i = 0, len = data.length; i < len; i++) {
+    if (i < dayCount) {
+      result.push('-');
+      continue;
+    }
+    let sum = 0;
+    for (let j = 0; j < dayCount; j++) {
+      sum += data[i - j].close;
+    }
+    result.push(parseFloat((sum / dayCount).toFixed(2)));
+  }
+  return result;
+};
+
+const colorList = ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae'];
+const labelFont = 'bold 12px Sans-serif';
 
 const StockDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +103,7 @@ const StockDetail: React.FC = () => {
         message.error('无法获取股票代码');
         return;
       }
-      const response = await stockDailyAPI.getStockDaily(ts_code, 0, 30);
+      const response = await stockDailyAPI.getStockDaily(ts_code, 0, 100);
       setDailyData(response.data);
       message.success(`获取到 ${response.data.length} 条K线数据`);
     } catch (error) {
@@ -103,7 +121,7 @@ const StockDetail: React.FC = () => {
         const ts_code = stock.ts_code || stock.symbol || stock.code || '';
         if (!ts_code) return;
 
-        const response = await stockDailyAPI.getStockDaily(ts_code, 0, 30);
+        const response = await stockDailyAPI.getStockDaily(ts_code, 0, 100);
         if (response.data) {
           setDailyData(response.data);
         }
@@ -211,86 +229,263 @@ const StockDetail: React.FC = () => {
   const isPositive = change >= 0;
   const price = stock.price ?? 0;
 
+  const dataReversed = [...dailyData].reverse();
+  const dates = dataReversed.map(item => {
+    const date = new Date(item.trade_date);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  });
+  const volumes = dataReversed.map(item => item.vol);
+  const candlestickData = dataReversed.map(item => [item.open, item.close, item.low, item.high]);
+
+  const dataMA5 = calculateMA(5, dataReversed);
+  const dataMA10 = calculateMA(10, dataReversed);
+  const dataMA20 = calculateMA(20, dataReversed);
+  const dataMA30 = calculateMA(30, dataReversed);
+
   const chartOption = {
+    animation: false,
+    color: colorList,
     title: {
-      text: '价格走势',
-      left: 'center'
-    },
-    tooltip: {
-      trigger: 'axis',
-      formatter: (params: any) => {
-        const param = params[0];
-        if (param) {
-          return `
-            <div style="padding: 8px;">
-              <div style="font-weight: bold; margin-bottom: 8px;">${param.name}</div>
-              <div>开盘价: ¥${param.data?.open?.toFixed(2)}</div>
-              <div>最高价: ¥${param.data?.high?.toFixed(2)}</div>
-              <div>最低价: ¥${param.data?.low?.toFixed(2)}</div>
-              <div>收盘价: ¥${param.data?.close?.toFixed(2)}</div>
-              <div style="color: ${param.data?.pct_chg >= 0 ? '#ef4444' : '#22c55e'}">
-                涨跌幅: ${param.data?.pct_chg >= 0 ? '+' : ''}${param.data?.pct_chg?.toFixed(2)}%
-              </div>
-            </div>
-          `;
-        }
-        return '';
-      }
+      left: 'center',
+      text: `${stock.name} (${stock.ts_code})`
     },
     legend: {
-      data: ['收盘价']
+      top: 30,
+      data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
     },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '10%',
-      top: '15%',
-      containLabel: true,
-    },
-    xAxis: {
-      type: 'category',
-      data: dailyData.map(item => {
-        const date = new Date(item.trade_date);
-        return `${date.getMonth() + 1}月${date.getDate()}日`;
-      }).reverse(),
-      axisLabel: {
-        rotate: 45,
-        interval: 0
+    height: 500,
+    tooltip: {
+      triggerOn: 'none',
+      transitionDuration: 0,
+      confine: true,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: '#333',
+      backgroundColor: 'rgba(255,255,255,0.9)',
+      textStyle: {
+        fontSize: 12,
+        color: '#333'
+      },
+      position: function (pos: any, params: any, el: any, elRect: any, size: any) {
+        const position: any = {
+          top: 60
+        };
+        const side = pos[0] < size.viewSize[0] / 2 ? 'left' : 'right';
+        position[side] = 5;
+        return position;
       }
     },
-    yAxis: {
-      type: 'value',
-      scale: true,
-      axisLabel: {
-        formatter: (value: number) => `¥${value.toFixed(2)}`
-      }
+    axisPointer: {
+      link: [
+        {
+          xAxisIndex: [0, 1]
+        }
+      ]
     },
+    dataZoom: [
+      {
+        type: 'slider',
+        xAxisIndex: [0, 1],
+        realtime: false,
+        start: 20,
+        end: 70,
+        top: 65,
+        height: 20,
+        handleIcon:
+          'path://M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+        handleSize: '120%'
+      },
+      {
+        type: 'inside',
+        xAxisIndex: [0, 1],
+        start: 40,
+        end: 70,
+        top: 30,
+        height: 20
+      }
+    ],
+    xAxis: [
+      {
+        type: 'category',
+        data: dates,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: '#777' } },
+        axisLabel: {
+          formatter: function (value: string) {
+            const date = new Date(value);
+            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          }
+        },
+        min: 'dataMin',
+        max: 'dataMax',
+        axisPointer: {
+          show: true
+        }
+      },
+      {
+        type: 'category',
+        gridIndex: 1,
+        data: dates,
+        boundaryGap: false,
+        splitLine: { show: false },
+        axisLabel: { show: false },
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: '#777' } },
+        min: 'dataMin',
+        max: 'dataMax',
+        axisPointer: {
+          type: 'shadow',
+          label: { show: false },
+          triggerTooltip: true,
+          handle: {
+            show: true,
+            margin: 30,
+            color: '#B80C00'
+          }
+        }
+      }
+    ],
+    yAxis: [
+      {
+        scale: true,
+        splitNumber: 2,
+        axisLine: { lineStyle: { color: '#777' } },
+        splitLine: { show: true },
+        axisTick: { show: false },
+        axisLabel: {
+          inside: true,
+          formatter: '{value}\n'
+        }
+      },
+      {
+        scale: true,
+        gridIndex: 1,
+        splitNumber: 2,
+        axisLabel: { show: false },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false }
+      }
+    ],
+    grid: [
+      {
+        left: 20,
+        right: 20,
+        top: 110,
+        height: 120
+      },
+      {
+        left: 20,
+        right: 20,
+        height: 40,
+        top: 260
+      }
+    ],
+    graphic: [
+      {
+        type: 'group',
+        left: 'center',
+        top: 70,
+        width: 300,
+        bounding: 'raw',
+        children: [
+          {
+            id: 'MA5',
+            type: 'text',
+            style: { fill: colorList[1], font: labelFont },
+            left: 0
+          },
+          {
+            id: 'MA10',
+            type: 'text',
+            style: { fill: colorList[2], font: labelFont },
+            left: 'center'
+          },
+          {
+            id: 'MA20',
+            type: 'text',
+            style: { fill: colorList[3], font: labelFont },
+            right: 0
+          }
+        ]
+      }
+    ],
     series: [
       {
-        name: '收盘价',
-        data: dailyData.map(item => ({
-          value: item.close,
-          open: item.open,
-          high: item.high,
-          low: item.low,
-          close: item.close,
-          pct_chg: item.pct_chg
-        })).reverse(),
+        name: 'Volume',
+        type: 'bar',
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        itemStyle: {
+          color: '#7fbe9e'
+        },
+        emphasis: {
+          itemStyle: {
+            color: '#140'
+          }
+        },
+        data: volumes
+      },
+      {
+        type: 'candlestick',
+        name: '日K',
+        data: candlestickData,
+        itemStyle: {
+          color: '#ef232a',
+          color0: '#14b143',
+          borderColor: '#ef232a',
+          borderColor0: '#14b143'
+        },
+        emphasis: {
+          itemStyle: {
+            color: 'black',
+            color0: '#444',
+            borderColor: 'black',
+            borderColor0: '#444'
+          }
+        }
+      },
+      {
+        name: 'MA5',
         type: 'line',
+        data: dataMA5,
         smooth: true,
         showSymbol: false,
         lineStyle: {
-          width: 2,
-          color: '#3b82f6'
-        },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
-            { offset: 1, color: 'rgba(59, 130, 246, 0.05)' }
-          ])
+          width: 1
         }
       },
-    ],
+      {
+        name: 'MA10',
+        type: 'line',
+        data: dataMA10,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          width: 1
+        }
+      },
+      {
+        name: 'MA20',
+        type: 'line',
+        data: dataMA20,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          width: 1
+        }
+      },
+      {
+        name: 'MA30',
+        type: 'line',
+        data: dataMA30,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: {
+          width: 1
+        }
+      }
+    ]
   };
 
   return (
