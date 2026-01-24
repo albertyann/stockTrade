@@ -15,6 +15,27 @@ from .stock_daily_basic import StockDailyBasic
 from .stock_moneyflow import StockMoneyflow
 from .index_basic import IndexBasic
 from .index_daily import IndexDaily
+from .quant_strategy import (
+    QuantStrategy,
+    StrategyVersion,
+    BacktestResult,
+    StrategySignal,
+    StrategyPerformance,
+    StrategyPosition,
+    StrategyType,
+    StrategyFrequency,
+    StrategyStatus,
+)
+from .trading import (
+    Order,
+    Position,
+    Portfolio,
+    Transaction,
+    OrderType,
+    OrderSide,
+    OrderStatus,
+    TransactionType,
+)
 
 __all__ = [
     'User',
@@ -33,4 +54,21 @@ __all__ = [
     'StockMoneyflow',
     'IndexBasic',
     'IndexDaily',
+    'QuantStrategy',
+    'StrategyVersion',
+    'BacktestResult',
+    'StrategySignal',
+    'StrategyPerformance',
+    'StrategyPosition',
+    'StrategyType',
+    'StrategyFrequency',
+    'StrategyStatus',
+    'Order',
+    'Position',
+    'Portfolio',
+    'Transaction',
+    'OrderType',
+    'OrderSide',
+    'OrderStatus',
+    'TransactionType',
 ]

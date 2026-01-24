@@ -34,3 +34,5 @@ uploads
 venv
 *.env
 db
+.opencode
+.claude

@@ -1,72 +1,96 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Star,
-  FileText,
-  Folder,
-  Search,
-  ClipboardList,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  LogOut,
-  RefreshCw,
-} from 'lucide-react';
+   LayoutDashboard,
+   TrendingUp,
+   Star,
+   FileText,
+   Folder,
+   Search,
+   ClipboardList,
+   Settings,
+   ChevronLeft,
+   ChevronRight,
+   User,
+   LogOut,
+   RefreshCw,
+   BarChart3,
+   ShoppingCart,
+   PieChart,
+   List,
+ } from 'lucide-react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 const menuItems = [
-  {
-    key: '/',
-    icon: LayoutDashboard,
-    label: '仪表盘',
-  },
-  {
-    key: '/stocks',
-    icon: TrendingUp,
-    label: '股票列表',
-  },
-  {
-    key: '/watchlist',
-    icon: Star,
-    label: '自选股票',
-  },
-  {
-    key: '/notes',
-    icon: FileText,
-    label: '投资笔记',
-  },
-  {
-    key: '/files',
-    icon: Folder,
-    label: '资料管理',
-  },
-  {
-    key: '/rules',
-    icon: Search,
-    label: '分析规则',
-  },
-  {
-    key: '/analysis-tasks',
-    icon: ClipboardList,
-    label: '分析任务',
-  },
-  {
-    key: '/sync-tasks',
-    icon: RefreshCw,
-    label: '同步任务',
-  },
-  {
-    key: '/settings',
-    icon: Settings,
-    label: '系统设置',
-  },
-];
+   {
+     key: '/',
+     icon: LayoutDashboard,
+     label: '仪表盘',
+   },
+   {
+     key: '/stocks',
+     icon: TrendingUp,
+     label: '股票列表',
+   },
+   {
+     key: '/strategies',
+     icon: BarChart3,
+     label: '量化策略',
+   },
+   {
+     key: '/orders',
+     icon: ShoppingCart,
+     label: '交易订单',
+   },
+   {
+     key: '/positions',
+     icon: List,
+     label: '持仓管理',
+   },
+   {
+     key: '/portfolio',
+     icon: PieChart,
+     label: '投资组合',
+   },
+   {
+     key: '/watchlist',
+     icon: Star,
+     label: '自选股票',
+   },
+   {
+     key: '/notes',
+     icon: FileText,
+     label: '投资笔记',
+   },
+   {
+     key: '/files',
+     icon: Folder,
+     label: '资料管理',
+   },
+   {
+     key: '/rules',
+     icon: Search,
+     label: '分析规则',
+   },
+   {
+     key: '/analysis-tasks',
+     icon: ClipboardList,
+     label: '分析任务',
+   },
+   {
+     key: '/sync-tasks',
+     icon: RefreshCw,
+     label: '同步任务',
+   },
+   {
+     key: '/settings',
+     icon: Settings,
+     label: '系统设置',
+   },
+ ];
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const navigate = useNavigate();

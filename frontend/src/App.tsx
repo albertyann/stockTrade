@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/es/locale/zh_CN';
 import { Loader2 } from 'lucide-react';
 import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
@@ -15,6 +17,11 @@ import StockDetail from './pages/StockDetail';
 import AnalysisTaskDetail from './pages/AnalysisTaskDetail';
 import AnalysisTasks from './pages/AnalysisTasks';
 import SyncTasks from './pages/SyncTasks';
+import StrategyList from './pages/StrategyList';
+import StrategyDetail from './pages/StrategyDetail';
+import OrderList from './pages/OrderList';
+import PositionList from './pages/PositionList';
+import Portfolio from './pages/Portfolio';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -41,35 +48,42 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
+    <ConfigProvider locale={zhCN}>
+      <Router>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/stocks" element={<StockList />} />
-          <Route path="/stocks/:id" element={<StockDetail />} />
-          <Route path="/watchlist" element={<Watchlist />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/files" element={<Files />} />
-          <Route path="/rules" element={<Rules />} />
-          <Route path="/analysis-tasks" element={<AnalysisTasks />} />
-          <Route path="/analysis-tasks/:id" element={<AnalysisTaskDetail />} />
-          <Route path="/sync-tasks" element={<SyncTasks />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/stocks" element={<StockList />} />
+                    <Route path="/stocks/:id" element={<StockDetail />} />
+                    <Route path="/strategies" element={<StrategyList />} />
+                    <Route path="/strategies/:id" element={<StrategyDetail />} />
+                    <Route path="/orders" element={<OrderList />} />
+                    <Route path="/positions" element={<PositionList />} />
+                    <Route path="/portfolio" element={<Portfolio />} />
+                    <Route path="/watchlist" element={<Watchlist />} />
+                    <Route path="/notes" element={<Notes />} />
+                    <Route path="/files" element={<Files />} />
+                    <Route path="/rules" element={<Rules />} />
+                    <Route path="/analysis-tasks" element={<AnalysisTasks />} />
+                    <Route path="/analysis-tasks/:id" element={<AnalysisTaskDetail />} />
+                    <Route path="/sync-tasks" element={<SyncTasks />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Router>
+      </Router>
+    </ConfigProvider>
   );
 };
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow, QuantStrategy, QuantStrategyCreate, QuantStrategyUpdate, StrategyVersion, BacktestResult, StrategySignal, StrategyPerformance, StrategyPosition, Order, OrderCreate, OrderUpdate, Position, Portfolio, Transaction, BacktestRequest, ExecuteStrategyRequest, StrategyExecutionResult, PaginatedResponse } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -329,6 +329,94 @@ export const financialAPI = {
     api.get(`/financials/${stock_id}/cashflow`, { params: { skip, limit } }),
 };
 
+export const quantStrategyAPI = {
+  getStrategies: (params: { skip?: number; limit?: number; user_id?: number; status?: string; search?: string } = {}): Promise<PaginatedResponse<QuantStrategy>> =>
+    api.get('/quant-strategies/', { params }).then(res => res.data),
+
+  getStrategy: (strategy_id: number): Promise<{ data: QuantStrategy }> =>
+    api.get(`/quant-strategies/${strategy_id}`),
+
+  createStrategy: (data: QuantStrategyCreate): Promise<{ data: QuantStrategy }> =>
+    api.post('/quant-strategies/', data),
+
+  updateStrategy: (strategy_id: number, data: QuantStrategyUpdate): Promise<{ data: QuantStrategy }> =>
+    api.put(`/quant-strategies/${strategy_id}`, data),
+
+  deleteStrategy: (strategy_id: number): Promise<void> =>
+    api.delete(`/quant-strategies/${strategy_id}`),
+
+  runBacktest: (strategy_id: number, data: BacktestRequest): Promise<{ data: { message: string; backtest_id: number } }> =>
+    api.post(`/quant-strategies/${strategy_id}/backtest`, data),
+
+  getBacktestResults: (strategy_id: number, params: { skip?: number; limit?: number } = {}): Promise<PaginatedResponse<BacktestResult>> =>
+    api.get(`/quant-strategies/${strategy_id}/backtest-results`, { params }).then(res => res.data),
+
+  getBacktestResult: (backtest_id: number): Promise<{ data: BacktestResult }> =>
+    api.get(`/quant-strategies/backtest-results/${backtest_id}`),
+
+  executeStrategy: (strategy_id: number, data: ExecuteStrategyRequest): Promise<{ data: StrategyExecutionResult }> =>
+    api.post(`/quant-strategies/${strategy_id}/execute`, data),
+
+  getStrategyVersions: (strategy_id: number, params: { skip?: number; limit?: number } = {}): Promise<PaginatedResponse<StrategyVersion>> =>
+    api.get(`/quant-strategies/${strategy_id}/versions`, { params }).then(res => res.data),
+
+  createVersion: (strategy_id: number, data: { version: string; parameters?: Record<string, any>; description?: string }): Promise<{ data: StrategyVersion }> =>
+    api.post(`/quant-strategies/${strategy_id}/versions`, data),
+
+  getStrategySignals: (strategy_id: number, params: { skip?: number; limit?: number; executed?: number } = {}): Promise<PaginatedResponse<StrategySignal>> =>
+    api.get(`/quant-strategies/${strategy_id}/signals`, { params }).then(res => res.data),
+
+  getStrategyPerformance: (strategy_id: number, params: { skip?: number; limit?: number } = {}): Promise<PaginatedResponse<StrategyPerformance>> =>
+    api.get(`/quant-strategies/${strategy_id}/performance`, { params }).then(res => res.data),
+
+  getStrategyPositions: (strategy_id: number, params: { skip?: number; limit?: number } = {}): Promise<PaginatedResponse<StrategyPosition>> =>
+    api.get(`/quant-strategies/${strategy_id}/positions`, { params }).then(res => res.data),
+};
+
+export const tradingAPI = {
+  getOrders: (params: { skip?: number; limit?: number; user_id?: number; strategy_id?: number; status?: string; side?: string; stock_id?: number } = {}): Promise<PaginatedResponse<Order>> =>
+    api.get('/trading/orders', { params }).then(res => res.data),
+
+  getOrder: (order_id: number): Promise<{ data: Order }> =>
+    api.get(`/trading/orders/${order_id}`),
+
+  createOrder: (data: OrderCreate): Promise<{ data: Order }> =>
+    api.post('/trading/orders', data),
+
+  updateOrder: (order_id: number, data: OrderUpdate): Promise<{ data: Order }> =>
+    api.put(`/trading/orders/${order_id}`, data),
+
+  cancelOrder: (order_id: number): Promise<{ data: { message: string } }> =>
+    api.post(`/trading/orders/${order_id}/cancel`),
+
+  getPositions: (params: { skip?: number; limit?: number; user_id?: number; strategy_id?: number; stock_id?: number } = {}): Promise<PaginatedResponse<Position>> =>
+    api.get('/trading/positions', { params }).then(res => res.data),
+
+  getPosition: (position_id: number): Promise<{ data: Position }> =>
+    api.get(`/trading/positions/${position_id}`),
+
+  closePosition: (position_id: number, data: { quantity?: number }): Promise<{ data: { message: string } }> =>
+    api.post(`/trading/positions/${position_id}/close`, data),
+
+  getPortfolios: (params: { skip?: number; limit?: number; user_id?: number; strategy_id?: number; as_of_date?: string } = {}): Promise<PaginatedResponse<Portfolio>> =>
+    api.get('/trading/portfolios', { params }).then(res => res.data),
+
+  getPortfolioSummary: (params: { user_id?: number; strategy_id?: number } = {}): Promise<{ data: any }> =>
+    api.get('/trading/portfolios/summary', { params }),
+
+  getPortfolioBreakdown: (params: { user_id?: number; strategy_id?: number } = {}): Promise<{ data: any }> =>
+    api.get('/trading/portfolios/breakdown', { params }),
+
+  getTransactions: (params: { skip?: number; limit?: number; user_id?: number; strategy_id?: number; order_id?: number; stock_id?: number; transaction_type?: string; start_date?: string; end_date?: string } = {}): Promise<PaginatedResponse<Transaction>> =>
+    api.get('/trading/transactions', { params }).then(res => res.data),
+
+  getTransaction: (transaction_id: number): Promise<{ data: Transaction }> =>
+    api.get(`/trading/transactions/${transaction_id}`),
+
+  getDashboard: (params: { user_id?: number; days?: number } = {}): Promise<{ data: any }> =>
+    api.get('/trading/dashboard', { params }),
+};
+
 const apiServices = {
   user: userAPI,
   stock: stockAPI,
@@ -345,6 +433,8 @@ const apiServices = {
   index: indexAPI,
   stockDaily: stockDailyAPI,
   financial: financialAPI,
+  quantStrategy: quantStrategyAPI,
+  trading: tradingAPI,
 };
 
 export default apiServices;

@@ -359,3 +359,354 @@ export interface StockCashFlow {
   created_at: string;
   updated_at: string;
 }
+
+export enum StrategyType {
+  MA_CROSS = 'MA_CROSS',
+  RSI_OVERSOLD = 'RSI_OVERSOLD',
+  BOLLINGER_BAND = 'BOLLINGER_BAND',
+  CUSTOM = 'CUSTOM'
+}
+
+export enum StrategyFrequency {
+  MIN_5 = 'MIN_5',
+  MIN_15 = 'MIN_15',
+  MIN_30 = 'MIN_30',
+  HOUR_1 = 'HOUR_1',
+  DAY_1 = 'DAY_1',
+  WEEK_1 = 'WEEK_1'
+}
+
+export enum StrategyStatus {
+  DRAFT = 'DRAFT',
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  STOPPED = 'STOPPED',
+  ARCHIVED = 'ARCHIVED'
+}
+
+export interface QuantStrategy {
+  id: number;
+  user_id: number;
+  strategy_code: string;
+  name: string;
+  description?: string;
+  strategy_type: StrategyType;
+  frequency: StrategyFrequency;
+  parameters?: Record<string, any>;
+  status: StrategyStatus;
+  is_active: number;
+  max_position_value?: number;
+  max_single_stock_ratio?: number;
+  stop_loss_ratio?: number;
+  take_profit_ratio?: number;
+  strategy_script?: string;
+  created_at: string;
+  updated_at?: string;
+  user?: User;
+  versions?: StrategyVersion[];
+  signals?: StrategySignal[];
+  positions?: StrategyPosition[];
+}
+
+export interface StrategyVersion {
+  id: number;
+  strategy_id: number;
+  version: string;
+  parameters?: Record<string, any>;
+  description?: string;
+  created_at: string;
+  strategy?: QuantStrategy;
+  backtest_results?: BacktestResult[];
+}
+
+export interface BacktestResult {
+  id: number;
+  strategy_id: number;
+  version_id?: number;
+  start_date: string;
+  end_date: string;
+  initial_capital: number;
+  final_capital: number;
+  total_return: number;
+  annualized_return: number;
+  max_drawdown: number;
+  sharpe_ratio: number;
+  win_rate: number;
+  total_trades: number;
+  profit_trades: number;
+  loss_trades: number;
+  equity_curve?: string;
+  trade_details?: string;
+  created_at: string;
+  strategy?: QuantStrategy;
+  version?: StrategyVersion;
+}
+
+export interface StrategySignal {
+  id: number;
+  strategy_id: number;
+  stock_id: number;
+  ts_code?: string;
+  signal_type: 'BUY' | 'SELL';
+  direction: 'LONG' | 'SHORT';
+  strength: number;
+  confidence: number;
+  price: number;
+  suggested_quantity?: number;
+  executed: number;
+  executed_at?: string;
+  created_at: string;
+  strategy?: QuantStrategy;
+}
+
+export interface StrategyPerformance {
+  id: number;
+  strategy_id: number;
+  as_of_date: string;
+  total_return: number;
+  annualized_return: number;
+  max_drawdown: number;
+  sharpe_ratio?: number;
+  sortino_ratio?: number;
+  volatility?: number;
+  win_rate: number;
+  profit_factor: number;
+  avg_return_per_trade: number;
+  total_trades: number;
+  active_positions: number;
+  created_at: string;
+  strategy?: QuantStrategy;
+}
+
+export interface StrategyPosition {
+  id: number;
+  strategy_id: number;
+  stock_id: number;
+  ts_code?: string;
+  quantity: number;
+  avg_cost: number;
+  total_cost: number;
+  current_price?: number;
+  current_value?: number;
+  market_value?: number;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  unrealized_pnl_ratio: number;
+  open_quantity?: number;
+  closed_quantity?: number;
+  last_trade_date?: string;
+  created_at: string;
+  updated_at?: string;
+  strategy?: QuantStrategy;
+}
+
+export enum OrderType {
+  MARKET = 'MARKET',
+  LIMIT = 'LIMIT',
+  STOP = 'STOP',
+  STOP_LIMIT = 'STOP_LIMIT'
+}
+
+export enum OrderSide {
+  BUY = 'BUY',
+  SELL = 'SELL'
+}
+
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  SUBMITTED = 'SUBMITTED',
+  PARTIAL_FILLED = 'PARTIAL_FILLED',
+  FILLED = 'FILLED',
+  CANCELLED = 'CANCELLED',
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED'
+}
+
+export interface Order {
+  id: number;
+  order_code: string;
+  user_id: number;
+  strategy_id?: number;
+  stock_id: number;
+  ts_code?: string;
+  order_type: OrderType;
+  side: OrderSide;
+  status: OrderStatus;
+  quantity: number;
+  filled_quantity: number;
+  price?: number;
+  stop_price?: number;
+  order_value?: number;
+  commission?: number;
+  slippage?: number;
+  message?: string;
+  submitted_at?: string;
+  filled_at?: string;
+  cancelled_at?: string;
+  created_at: string;
+  updated_at?: string;
+  user?: User;
+  strategy?: QuantStrategy;
+  transactions?: Transaction[];
+}
+
+export interface Position {
+  id: number;
+  user_id: number;
+  strategy_id?: number;
+  stock_id: number;
+  ts_code?: string;
+  quantity: number;
+  avg_cost?: number;
+  total_cost?: number;
+  current_price?: number;
+  current_value?: number;
+  market_value?: number;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  unrealized_pnl_ratio: number;
+  open_quantity?: number;
+  closed_quantity?: number;
+  last_trade_date?: string;
+  created_at: string;
+  updated_at?: string;
+  user?: User;
+  strategy?: QuantStrategy;
+}
+
+export interface Portfolio {
+  id: number;
+  user_id: number;
+  strategy_id?: number;
+  initial_capital: number;
+  current_capital?: number;
+  total_value?: number;
+  cash_balance?: number;
+  position_value?: number;
+  total_pnl: number;
+  total_pnl_ratio: number;
+  daily_return?: number;
+  daily_pnl?: number;
+  risk_exposure?: number;
+  leverage: number;
+  as_of_date: string;
+  created_at: string;
+  updated_at?: string;
+  user?: User;
+  strategy?: QuantStrategy;
+}
+
+export enum TransactionType {
+  BUY = 'BUY',
+  SELL = 'SELL',
+  DEPOSIT = 'DEPOSIT',
+  WITHDRAW = 'WITHDRAW',
+  DIVIDEND = 'DIVIDEND',
+  COMMISSION = 'COMMISSION',
+  FEE = 'FEE'
+}
+
+export interface Transaction {
+  id: number;
+  transaction_code: string;
+  user_id: number;
+  strategy_id?: number;
+  order_id?: number;
+  stock_id?: number;
+  ts_code?: string;
+  transaction_type: TransactionType;
+  side?: string;
+  quantity?: number;
+  price?: number;
+  amount?: number;
+  commission: number;
+  tax: number;
+  slippage: number;
+  before_balance?: number;
+  after_balance?: number;
+  transaction_date: string;
+  settlement_date?: string;
+  notes?: string;
+  created_at: string;
+  user?: User;
+  strategy?: QuantStrategy;
+  order?: Order;
+}
+
+export interface QuantStrategyCreate {
+  strategy_code: string;
+  name: string;
+  description?: string;
+  strategy_type: StrategyType;
+  frequency?: StrategyFrequency;
+  parameters?: Record<string, any>;
+  status?: StrategyStatus;
+  is_active?: number;
+  max_position_value?: number;
+  max_single_stock_ratio?: number;
+  stop_loss_ratio?: number;
+  take_profit_ratio?: number;
+  strategy_script?: string;
+}
+
+export interface QuantStrategyUpdate {
+  name?: string;
+  description?: string;
+  frequency?: StrategyFrequency;
+  parameters?: Record<string, any>;
+  status?: StrategyStatus;
+  is_active?: number;
+  max_position_value?: number;
+  max_single_stock_ratio?: number;
+  stop_loss_ratio?: number;
+  take_profit_ratio?: number;
+  strategy_script?: string;
+}
+
+export interface OrderCreate {
+  order_code: string;
+  stock_id: number;
+  ts_code?: string;
+  order_type: OrderType;
+  side: OrderSide;
+  quantity: number;
+  price?: number;
+  stop_price?: number;
+  strategy_id?: number;
+}
+
+export interface OrderUpdate {
+  status?: OrderStatus;
+  filled_quantity?: number;
+  price?: number;
+  stop_price?: number;
+  message?: string;
+}
+
+export interface BacktestRequest {
+  start_date: string;
+  end_date: string;
+  initial_capital: number;
+  commission_rate?: number;
+  slippage?: number;
+}
+
+export interface ExecuteStrategyRequest {
+  dry_run: boolean;
+}
+
+export interface StrategyExecutionResult {
+  strategy_id: number;
+  strategy_name: string;
+  signals_generated: number;
+  orders_created: number;
+  dry_run: boolean;
+  signals: any[];
+  orders: Order[];
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+}
+
