@@ -25,6 +25,11 @@ class InvestmentNoteResponse(InvestmentNoteBase):
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
+
+
+class PaginatedInvestmentNotes(BaseModel):
+    data: list[InvestmentNoteResponse]
+    total: int

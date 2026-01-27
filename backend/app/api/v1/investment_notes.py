@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from ...database import get_db
-from ...schemas.investment_note import InvestmentNoteResponse, InvestmentNoteCreate, InvestmentNoteUpdate
+from ...schemas.investment_note import InvestmentNoteResponse, InvestmentNoteCreate, InvestmentNoteUpdate, PaginatedInvestmentNotes
 from ...crud import investment_note as note_crud
 from ...core.security import get_current_active_user
 from ...schemas.user import UserResponse
@@ -19,7 +19,7 @@ async def create_investment_note(
     return note_crud.create_investment_note(db=db, note=note, user_id=current_user.id)
 
 
-@router.get("/", response_model=List[InvestmentNoteResponse])
+@router.get("/", response_model=PaginatedInvestmentNotes)
 async def read_investment_notes(
     skip: int = 0,
     limit: int = 100,

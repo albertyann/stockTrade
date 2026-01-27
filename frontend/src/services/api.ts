@@ -96,8 +96,8 @@ export const userStockAPI = {
 
 // 投资笔记相关API
 export const investmentNoteAPI = {
-  getInvestmentNotes: (params: { skip?: number; limit?: number } = {}): Promise<{ data: InvestmentNote[] }> => 
-    api.get('/investment-notes', { params }),
+  getInvestmentNotes: (params: { skip?: number; limit?: number } = {}): Promise<{ data: InvestmentNote[]; total: number }> => 
+    api.get('/investment-notes', { params }).then(res => res.data),
   
   getInvestmentNote: (id: number): Promise<{ data: InvestmentNote }> => 
     api.get(`/investment-notes/${id}`),

@@ -1,15 +1,22 @@
 from sqlalchemy.orm import Session
 from ..models.investment_note import InvestmentNote
 from ..schemas.investment_note import InvestmentNoteCreate, InvestmentNoteUpdate
+import logging
 from typing import Optional
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_investment_note(db: Session, note_id: int) -> Optional[InvestmentNote]:
     return db.query(InvestmentNote).filter(InvestmentNote.id == note_id).first()
 
 
 def get_investment_notes_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(InvestmentNote).filter(InvestmentNote.user_id == user_id).offset(skip).limit(limit).all()
+    query = db.query(InvestmentNote).filter(InvestmentNote.user_id == user_id)
+    total = query.count()
+    logger.info(f"[笔记查询] total: {total}")
+    notes = query.offset(skip).limit(limit).all()
+    return {"data": notes, "total": total}
 
 
 def get_investment_notes_by_stock(db: Session, user_id: int, stock_id: int, skip: int = 0, limit: int = 100):
