@@ -18,6 +18,7 @@ import {
    ShoppingCart,
    PieChart,
    List,
+   Zap,
  } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -34,6 +35,11 @@ const menuItems = [
      key: '/stocks',
      icon: TrendingUp,
      label: '股票列表',
+   },
+   {
+     key: '/stock-selection-assistant',
+     icon: Zap,
+     label: '选股助手',
    },
    {
      key: '/strategies',

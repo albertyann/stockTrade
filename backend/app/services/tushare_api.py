@@ -18,12 +18,12 @@ class TushareAPI:
 
     def get_stock_basic(
         self,
-        ts_code: str = None,
-        name: str = None,
-        market: str = None,
+        ts_code: Optional[str] = None,
+        name: Optional[str] = None,
+        market: Optional[str] = None,
         list_status: str = "L",
-        exchange: str = None,
-        is_hs: str = None,
+        exchange: Optional[str] = None,
+        is_hs: Optional[str] = None,
         fields: str = "ts_code,symbol,name,area,industry,fullname,enname,cnspell,market,exchange,curr_type,list_status,list_date,delist_date,is_hs,act_name,act_ent_type"
     ) -> Optional[List[Dict[str, Any]]]:
         """
@@ -193,4 +193,47 @@ class TushareAPI:
             return []
         except Exception as e:
             print(f"Error fetching daily data from Tushare: {str(e)}")
+            return None
+
+    def get_limit_cpt_list(
+        self,
+        trade_date: str = None,
+        ts_code: str = None,
+        start_date: str = None,
+        end_date: str = None
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        获取涨停股票最多最强的概念板块
+
+        Args:
+            trade_date: 交易日期 (YYYYMMDD)
+            ts_code: 板块代码
+            start_date: 开始日期 (YYYYMMDD)
+            end_date: 结束日期 (YYYYMMDD)
+
+        Returns:
+            最强板块统计列表
+        """
+        if not self.pro:
+            print("Tushare API not configured")
+            return None
+
+        try:
+            params = {}
+
+            if trade_date:
+                params["trade_date"] = trade_date
+            if ts_code:
+                params["ts_code"] = ts_code
+            if start_date:
+                params["start_date"] = start_date
+            if end_date:
+                params["end_date"] = end_date
+
+            df = self.pro.limit_cpt_list(**params)
+            if df is not None and not df.empty:
+                return df.to_dict(orient="records")
+            return []
+        except Exception as e:
+            print(f"Error fetching limit concept sector list from Tushare: {str(e)}")
             return None

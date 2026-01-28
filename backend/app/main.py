@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
 from .api.v1 import (
-    auth, users, stocks, user_stocks, investment_notes, uploaded_files, 
-    analysis_rules, analysis_results, sync, system_settings, analysis_tasks, 
+    auth, users, stocks, user_stocks, investment_notes, uploaded_files,
+    analysis_rules, analysis_results, sync, system_settings, analysis_tasks,
     sync_management, index_daily, stock_daily, financials,
-    quant_strategies, trading
+    quant_strategies, trading, limit_cpt
 )
 from .core.config import settings
 from .services.data_sync_scheduler import run_scheduler
@@ -43,6 +43,7 @@ app.include_router(stock_daily.router, prefix="/api/v1/stock-daily", tags=["stoc
 app.include_router(financials.router, prefix="/api/v1/financials", tags=["financials"])
 app.include_router(quant_strategies.router, prefix="/api/v1/quant-strategies", tags=["quant-strategies"])
 app.include_router(trading.router, prefix="/api/v1/trading", tags=["trading"])
+app.include_router(limit_cpt.router, prefix="/api/v1/limit-cpt", tags=["limit-cpt"])
 
 
 @app.on_event("startup")

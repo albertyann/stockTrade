@@ -7,6 +7,7 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import StockList from './pages/StockList';
+import StockSelectionAssistant from './pages/StockSelectionAssistant';
 import Watchlist from './pages/Watchlist';
 import Notes from './pages/Notes';
 import Files from './pages/Files';
@@ -61,6 +62,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/stocks" element={<StockList />} />
                     <Route path="/stocks/:id" element={<StockDetail />} />
+                    <Route path="/stock-selection-assistant" element={<StockSelectionAssistant />} />
                     <Route path="/strategies" element={<StrategyList />} />
                     <Route path="/strategies/:id" element={<StrategyDetail />} />
                     <Route path="/orders" element={<OrderList />} />

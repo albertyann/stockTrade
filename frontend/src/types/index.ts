@@ -705,6 +705,19 @@ export interface StrategyExecutionResult {
   orders: Order[];
 }
 
+// 最强板块统计类型
+export interface LimitConceptSector {
+  ts_code: string;
+  name: string;
+  trade_date: string;
+  days: number;
+  up_stat: string;
+  cons_nums: number;
+  up_nums: string;
+  pct_chg: number;
+  rank: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

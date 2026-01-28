@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow, QuantStrategy, QuantStrategyCreate, QuantStrategyUpdate, StrategyVersion, BacktestResult, StrategySignal, StrategyPerformance, StrategyPosition, Order, OrderCreate, OrderUpdate, Position, Portfolio, Transaction, BacktestRequest, ExecuteStrategyRequest, StrategyExecutionResult, PaginatedResponse } from '../types';
+import { User, Stock, UserStock, InvestmentNote, UploadedFile, AnalysisRule, SyncRequest, SyncResult, SyncStatus, LoginRequest, LoginResponse, AnalysisResult, AnalysisTask, AISettings, SchedulerSettings, SyncInterface, SyncTask, SyncExecutionLog, IndexDaily, StockDaily, StockIncomeStatement, StockBalanceSheet, StockCashFlow, QuantStrategy, QuantStrategyCreate, QuantStrategyUpdate, StrategyVersion, BacktestResult, StrategySignal, StrategyPerformance, StrategyPosition, Order, OrderCreate, OrderUpdate, Position, Portfolio, Transaction, BacktestRequest, ExecuteStrategyRequest, StrategyExecutionResult, PaginatedResponse, LimitConceptSector } from '../types';
 
 // API基础配置
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -417,6 +417,11 @@ export const tradingAPI = {
     api.get('/trading/dashboard', { params }),
 };
 
+export const limitCptAPI = {
+  getLimitConceptSectors: (params: { trade_date?: string; ts_code?: string; start_date?: string; end_date?: string } = {}): Promise<{ data: LimitConceptSector[] }> =>
+    api.get('/limit-cpt/limit-concept-sectors', { params }).then(res => res.data),
+};
+
 const apiServices = {
   user: userAPI,
   stock: stockAPI,
@@ -435,6 +440,7 @@ const apiServices = {
   financial: financialAPI,
   quantStrategy: quantStrategyAPI,
   trading: tradingAPI,
+  limitCpt: limitCptAPI,
 };
 
 export default apiServices;
